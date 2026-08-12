@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.svg">
-  <img src="assets/banner-light.svg" width="100%" alt="Talkdedsec Visual — Windows için gerçek zamanlı ekran renk motoru.">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.png">
+  <img src="assets/banner-light.png" width="100%" alt="Talkdedsec Visual — Windows için gerçek zamanlı ekran renk motoru.">
 </picture>
 
 <p align="center">

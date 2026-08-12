@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.svg">
-  <img src="assets/banner-light.svg" width="100%" alt="Talkdedsec Visual — real-time screen colour engine for Windows. 5 controls, one 5×5 matrix, 9.4 MB, no injection, no admin rights.">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.png">
+  <img src="assets/banner-light.png" width="100%" alt="Talkdedsec Visual — real-time screen colour engine for Windows. 5 controls, one 5×5 matrix, 9.4 MB, no injection, no admin rights.">
 </picture>
 
 <p align="center">
