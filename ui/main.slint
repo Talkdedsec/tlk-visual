@@ -1,0 +1,1563 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Talkdedsec
+
+import { Theme } from "theme.slint";
+import { Card, TdsSlider, ValueBox, ResetDot, GhostButton, AccentButton, IconButton, Toggle, Logo } from "widgets.slint";
+import { IconClose, IconMinimize, IconPlay, IconSliders, IconSlidersKnobs, IconSun, IconContrast, IconContrastFill, IconMoon, IconSplit, IconTrash, IconEye, IconImport, IconExport, IconDoc } from "icons.slint";
+
+export struct Preset {
+    name: string,
+    hint: string,
+    thumb: image,
+}
+
+component Kicker inherits Text {
+    color: Theme.text-faint;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+    font-family: Theme.font;
+}
+
+component SectionTitle inherits Text {
+    color: Theme.text;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: Theme.font;
+}
+
+component Divider inherits Rectangle {
+    height: 1px;
+    background: Theme.border-soft;
+}
+
+component ControlRow inherits Rectangle {
+    in property <string> label;
+    in property <string> caption;
+    in property <float> minimum;
+    in property <float> maximum;
+    in property <float> neutral;
+    in property <brush> fill-brush;
+    in property <string> display;
+    in property <bool> touched;
+    in-out property <float> value;
+    callback changed(float);
+    callback committed(string);
+    callback reset();
+
+    height: 46px;
+    border-radius: 9px;
+    background: hover.has-hover ? Theme.panel-alt : transparent;
+    animate background { duration: 120ms; }
+
+    hover := TouchArea {
+        mouse-cursor: default;
+    }
+
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 10px;
+        spacing: 16px;
+
+        VerticalLayout {
+            alignment: center;
+            spacing: 1px;
+            width: 128px;
+            horizontal-stretch: 0;
+
+            Text {
+                text: root.label;
+                color: root.touched ? Theme.text : Theme.text-dim;
+                font-size: 12px;
+                font-weight: 600;
+                font-family: Theme.font;
+            }
+
+            Text {
+                text: root.caption;
+                color: Theme.text-faint;
+                font-size: 9px;
+                font-family: Theme.font;
+            }
+        }
+
+        TdsSlider {
+            y: (parent.height - self.height) / 2;
+            minimum: root.minimum;
+            maximum: root.maximum;
+            neutral: root.neutral;
+            fill-brush: root.fill-brush;
+            value: root.value;
+            horizontal-stretch: 1;
+            changed(v) => {
+                root.changed(v);
+            }
+        }
+
+        ResetDot {
+            y: (parent.height - self.height) / 2;
+            horizontal-stretch: 0;
+            clicked => {
+                root.reset();
+            }
+        }
+
+        ValueBox {
+            y: (parent.height - self.height) / 2;
+            text: root.display;
+            changed: root.touched;
+            horizontal-stretch: 0;
+            committed(v) => {
+                root.committed(v);
+            }
+        }
+    }
+}
+
+component ControlCard inherits Card {
+    in property <string> kicker;
+    in property <string> title;
+    in property <string> glyph;
+    in property <color> glyph-color: Theme.accent;
+    callback reset-block();
+
+    VerticalLayout {
+        padding: 16px;
+        spacing: 8px;
+
+        HorizontalLayout {
+            spacing: 13px;
+            padding-bottom: 2px;
+
+            Rectangle {
+                y: (parent.height - self.height) / 2;
+                width: 38px;
+                height: 38px;
+                border-radius: 11px;
+                background: root.glyph-color.transparentize(0.86);
+                horizontal-stretch: 0;
+
+                if root.glyph == "sun": IconSun {
+                    x: (parent.width - self.width) / 2;
+                    y: (parent.height - self.height) / 2;
+                    size: 20px;
+                    tint: root.glyph-color;
+                }
+
+                if root.glyph == "color": IconContrast {
+                    x: (parent.width - self.width) / 2;
+                    y: (parent.height - self.height) / 2;
+                    size: 20px;
+                    tint: root.glyph-color;
+                }
+
+                if root.glyph == "color": IconContrastFill {
+                    x: (parent.width - self.width) / 2;
+                    y: (parent.height - self.height) / 2;
+                    size: 20px;
+                    tint: root.glyph-color;
+                }
+
+                if root.glyph == "moon": IconMoon {
+                    x: (parent.width - self.width) / 2;
+                    y: (parent.height - self.height) / 2;
+                    size: 19px;
+                    tint: root.glyph-color;
+                }
+            }
+
+            VerticalLayout {
+                alignment: center;
+                spacing: 2px;
+                horizontal-stretch: 1;
+
+                Kicker {
+                    text: root.kicker;
+                }
+
+                Text {
+                    text: root.title;
+                    color: Theme.text;
+                    font-size: 17px;
+                    font-weight: 700;
+                    font-family: Theme.font;
+                }
+            }
+
+            GhostButton {
+                y: (parent.height - self.height) / 2;
+                text: "Bloğu sıfırla";
+                width: 122px;
+                horizontal-stretch: 0;
+                clicked => {
+                    root.reset-block();
+                }
+            }
+        }
+
+        @children
+    }
+}
+
+export component MainWindow inherits Window {
+    title: "Talkdedsec Visual";
+    background: Theme.bg;
+    no-frame: true;
+    default-font-family: Theme.font;
+    preferred-width: 1372px;
+    preferred-height: 962px;
+    min-width: 1260px;
+    min-height: 860px;
+
+    in-out property <float> brightness: 0;
+    in-out property <float> contrast: 1;
+    in-out property <float> saturation: 1;
+    in-out property <float> hue: 0;
+    in-out property <float> night-vision: 0;
+
+    in property <string> brightness-text: "+0,00";
+    in property <string> contrast-text: "1,00";
+    in property <string> saturation-text: "1,00";
+    in property <string> hue-text: "+0";
+    in property <string> night-vision-text: "0,00";
+
+    in property <bool> engine-active: false;
+    in property <bool> comparing: false;
+    in property <string> status-text: "Hazır.";
+    in property <string> status-detail: "Ekran dokunulmadı.";
+    in property <string> matrix-text: "";
+    in-out property <bool> auto-apply: true;
+
+    in property <image> preview-before;
+    in property <image> preview-after;
+    in-out property <float> split: 0.46;
+
+    in property <[Preset]> presets;
+    in property <[string]> profiles;
+    in-out property <int> selected-preset: -1;
+    in-out property <string> profile-name: "";
+
+    in property <bool> settings-open: false;
+    in property <bool> autostart: false;
+    in property <bool> tray-on-close: true;
+    in property <[string]> hotkeys;
+    in property <int> hotkey-index: 3;
+    in property <string> version: "0.1.0";
+
+    callback changed(string, float);
+    callback committed(string, string);
+    callback reset-block(string);
+    callback reset-all();
+    callback apply-now();
+    callback compare(bool);
+    callback toggle-auto(bool);
+    callback pick-preset(int);
+    callback pick-profile(int);
+    callback delete-profile(int);
+    callback save-profile();
+    callback import-profiles();
+    callback export-profiles();
+    callback open-source();
+    callback open-settings();
+    callback close-settings();
+    callback set-autostart(bool);
+    callback set-tray-close(bool);
+    callback set-hotkey(int);
+    callback move-window(length, length);
+    callback minimize();
+    callback quit();
+
+    VerticalLayout {
+        spacing: 0;
+
+        // ---- title bar -------------------------------------------------------
+        Rectangle {
+            height: 68px;
+            background: Theme.panel-alt;
+            vertical-stretch: 0;
+
+            Rectangle {
+                y: parent.height - 1px;
+                height: 1px;
+                background: Theme.border;
+            }
+
+            TouchArea {
+                moved => {
+                    if (self.pressed) {
+                        root.move-window(self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                padding-left: 18px;
+                padding-right: 14px;
+                spacing: 10px;
+
+                Logo {
+                    y: (parent.height - self.height) / 2;
+                    size: 40px;
+                    horizontal-stretch: 0;
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 1px;
+                    horizontal-stretch: 0;
+
+                    Text {
+                        text: "TALKDEDSEC";
+                        color: Theme.text;
+                        font-size: 15px;
+                        font-weight: 800;
+                        letter-spacing: 1.4px;
+                    }
+
+                    Kicker {
+                        text: "VISUAL ENGINE";
+                    }
+                }
+
+                Rectangle {
+                    horizontal-stretch: 1;
+                }
+
+                Rectangle {
+                    y: (parent.height - self.height) / 2;
+                    height: 38px;
+                    width: 142px;
+                    horizontal-stretch: 0;
+                    border-radius: 10px;
+                    background: root.engine-active ? Theme.accent.transparentize(0.9) : Theme.panel;
+                    border-width: 1px;
+                    border-color: root.engine-active ? Theme.accent.transparentize(0.6) : Theme.border;
+                    animate background, border-color { duration: 200ms; }
+
+                    HorizontalLayout {
+                        alignment: center;
+                        spacing: 8px;
+
+                        Rectangle {
+                            y: (parent.height - self.height) / 2;
+                            width: 8px;
+                            height: 8px;
+                            border-radius: 4px;
+                            background: root.engine-active ? Theme.accent : Theme.text-faint;
+
+                            states [
+                                pulsing when root.engine-active: {
+                                    opacity: 0.35;
+                                    in {
+                                        animate opacity {
+                                            duration: 900ms;
+                                            iteration-count: -1;
+                                            direction: alternate;
+                                            easing: ease-in-out;
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+
+                        Text {
+                            text: root.engine-active ? "AKTİF" : "BOŞTA";
+                            color: root.engine-active ? Theme.accent : Theme.text-dim;
+                            font-size: 11px;
+                            font-weight: 700;
+                            letter-spacing: 1px;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                gear := IconButton {
+                    y: (parent.height - self.height) / 2;
+                    horizontal-stretch: 0;
+                    clicked => {
+                        root.open-settings();
+                    }
+
+                    IconSliders {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 18px;
+                        tint: gear.hovered ? Theme.text : Theme.text-dim;
+                    }
+
+                    IconSlidersKnobs {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 18px;
+                        tint: gear.hovered ? Theme.text : Theme.text-dim;
+                    }
+                }
+
+                Rectangle {
+                    y: (parent.height - self.height) / 2;
+                    width: 44px;
+                    height: 40px;
+                    horizontal-stretch: 0;
+                    border-radius: Theme.radius-sm;
+                    background: apply-touch.pressed ? Theme.accent-deep : Theme.accent;
+                    animate background { duration: 90ms; }
+
+                    IconPlay {
+                        x: (parent.width - self.width) / 2 + 1px;
+                        y: (parent.height - self.height) / 2;
+                        size: 17px;
+                        tint: #0a0a0b;
+                    }
+
+                    apply-touch := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => {
+                            root.apply-now();
+                        }
+                    }
+                }
+
+                Rectangle {
+                    width: 6px;
+                    horizontal-stretch: 0;
+                }
+
+                mini := IconButton {
+                    y: (parent.height - self.height) / 2;
+                    horizontal-stretch: 0;
+                    clicked => {
+                        root.minimize();
+                    }
+
+                    IconMinimize {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 18px;
+                        tint: mini.hovered ? Theme.text : Theme.text-dim;
+                    }
+                }
+
+                shut := IconButton {
+                    y: (parent.height - self.height) / 2;
+                    horizontal-stretch: 0;
+                    clicked => {
+                        root.quit();
+                    }
+
+                    IconClose {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 17px;
+                        tint: shut.hovered ? #ff6b6b : Theme.text-dim;
+                    }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            padding: 14px;
+            spacing: 14px;
+
+            // ---- left rail ----------------------------------------------------
+            VerticalLayout {
+                width: 246px;
+                horizontal-stretch: 0;
+                spacing: 14px;
+
+                Card {
+                    vertical-stretch: 1;
+                    background: Theme.panel-alt;
+
+                    VerticalLayout {
+                        padding: 14px;
+                        spacing: 7px;
+
+                        Kicker {
+                            text: "PRESETLER";
+                        }
+
+                        SectionTitle {
+                            text: "Hazır görünümler";
+                        }
+
+                        Rectangle {
+                            height: 2px;
+                        }
+
+                        Rectangle {
+                            height: 46px;
+                            border-radius: 11px;
+                            background: root.selected-preset == -1 ? Theme.raised : (custom-row.has-hover ? Theme.panel : transparent);
+                            border-width: 1px;
+                            border-color: root.selected-preset == -1 ? Theme.accent.transparentize(0.55) : Theme.border-soft;
+                            animate background, border-color { duration: 110ms; }
+
+                            HorizontalLayout {
+                                padding-left: 13px;
+                                padding-right: 8px;
+                                spacing: 8px;
+
+                                Text {
+                                    text: "Özel";
+                                    color: root.selected-preset == -1 ? Theme.text : Theme.text-dim;
+                                    font-size: 13px;
+                                    font-weight: 600;
+                                    vertical-alignment: center;
+                                    horizontal-stretch: 1;
+                                }
+
+                                Rectangle {
+                                    y: (parent.height - self.height) / 2;
+                                    width: 30px;
+                                    height: 30px;
+                                    horizontal-stretch: 0;
+                                    border-radius: 8px;
+                                    background: cog.has-hover ? Theme.panel : transparent;
+
+                                    IconSliders {
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                        size: 15px;
+                                        tint: cog.has-hover ? Theme.accent : Theme.text-faint;
+                                    }
+
+                                    IconSlidersKnobs {
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                        size: 15px;
+                                        tint: cog.has-hover ? Theme.accent : Theme.text-faint;
+                                    }
+
+                                    cog := TouchArea {
+                                        mouse-cursor: pointer;
+                                        clicked => {
+                                            root.open-settings();
+                                        }
+                                    }
+                                }
+                            }
+
+                            custom-row := TouchArea {
+                                mouse-cursor: default;
+                            }
+                        }
+
+                        for preset[i] in root.presets: Rectangle {
+                            height: 58px;
+                            border-radius: 11px;
+                            background: root.selected-preset == i ? Theme.raised : (prow.has-hover ? Theme.panel : transparent);
+                            border-width: 1px;
+                            border-color: root.selected-preset == i ? Theme.accent.transparentize(0.55) : transparent;
+                            animate background, border-color { duration: 110ms; }
+
+                            HorizontalLayout {
+                                padding: 7px;
+                                spacing: 10px;
+
+                                VerticalLayout {
+                                    alignment: center;
+                                    spacing: 3px;
+                                    horizontal-stretch: 1;
+                                    padding-left: 5px;
+
+                                    Text {
+                                        text: preset.name;
+                                        color: root.selected-preset == i ? Theme.text : Theme.text-dim;
+                                        font-size: 12px;
+                                        font-weight: 600;
+                                        overflow: elide;
+                                    }
+
+                                    Text {
+                                        text: preset.hint;
+                                        color: Theme.text-faint;
+                                        font-size: 9px;
+                                        overflow: elide;
+                                    }
+                                }
+
+                                Rectangle {
+                                    width: 84px;
+                                    horizontal-stretch: 0;
+                                    border-radius: 7px;
+                                    clip: true;
+
+                                    Image {
+                                        source: preset.thumb;
+                                        width: 100%;
+                                        height: 100%;
+                                        image-fit: cover;
+                                    }
+
+                                    Rectangle {
+                                        width: 100%;
+                                        height: 100%;
+                                        border-radius: 7px;
+                                        border-width: 1px;
+                                        border-color: #ffffff1a;
+                                    }
+                                }
+                            }
+
+                            prow := TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => {
+                                    root.pick-preset(i);
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            height: 6px;
+                        }
+
+                        Divider { }
+
+                        Kicker {
+                            text: "PROFİLLERİM";
+                        }
+
+                        if root.profiles.length == 0: Rectangle {
+                            vertical-stretch: 1;
+
+                            VerticalLayout {
+                                alignment: center;
+                                spacing: 8px;
+
+                                Rectangle {
+                                    height: 32px;
+                                    IconEye {
+                                        x: (parent.width - self.width) / 2;
+                                        size: 26px;
+                                        tint: Theme.text-faint;
+                                    }
+                                }
+
+                                Text {
+                                    text: "Henüz profil yok";
+                                    color: Theme.text-dim;
+                                    font-size: 11px;
+                                    horizontal-alignment: center;
+                                }
+
+                                Text {
+                                    text: "Sağdaki panelden kaydet.";
+                                    color: Theme.text-faint;
+                                    font-size: 10px;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
+
+                        for profile[i] in root.profiles: Rectangle {
+                            height: 38px;
+                            border-radius: 9px;
+                            background: frow.has-hover ? Theme.panel : transparent;
+
+                            HorizontalLayout {
+                                padding-left: 12px;
+                                padding-right: 6px;
+                                spacing: 6px;
+
+                                Text {
+                                    text: profile;
+                                    color: Theme.text-dim;
+                                    font-size: 12px;
+                                    vertical-alignment: center;
+                                    horizontal-stretch: 1;
+                                    overflow: elide;
+                                }
+
+                                if frow.has-hover: Rectangle {
+                                    y: (parent.height - self.height) / 2;
+                                    width: 28px;
+                                    height: 28px;
+                                    horizontal-stretch: 0;
+                                    border-radius: 8px;
+                                    background: del.has-hover ? #3a1520 : transparent;
+
+                                    IconTrash {
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                        size: 15px;
+                                        tint: del.has-hover ? #ff6b6b : Theme.text-faint;
+                                    }
+
+                                    del := TouchArea {
+                                        mouse-cursor: pointer;
+                                        clicked => {
+                                            root.delete-profile(i);
+                                        }
+                                    }
+                                }
+                            }
+
+                            frow := TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => {
+                                    root.pick-profile(i);
+                                }
+                            }
+                        }
+
+                        if root.profiles.length > 0: Rectangle {
+                            vertical-stretch: 1;
+                        }
+                    }
+                }
+
+                Card {
+                    height: 128px;
+                    vertical-stretch: 0;
+
+                    VerticalLayout {
+                        padding: 14px;
+                        spacing: 5px;
+
+                        Kicker {
+                            text: "AÇIK KAYNAK";
+                            color: Theme.purple;
+                        }
+
+                        Text {
+                            text: "Kaynak kodu açık";
+                            color: Theme.text;
+                            font-size: 14px;
+                            font-weight: 700;
+                        }
+
+                        Text {
+                            text: "GPL-3.0 · katkıya açık";
+                            color: Theme.text-faint;
+                            font-size: 10px;
+                            wrap: word-wrap;
+                        }
+
+                        Rectangle {
+                            vertical-stretch: 1;
+                        }
+
+                        Rectangle {
+                            height: 34px;
+                            vertical-stretch: 0;
+                            border-radius: 9px;
+                            background: src.has-hover ? #6a4de0 : Theme.purple;
+                            animate background { duration: 120ms; }
+
+                            Text {
+                                text: "GitHub'da aç";
+                                color: #ffffff;
+                                font-size: 11px;
+                                font-weight: 700;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+
+                            src := TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => {
+                                    root.open-source();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ---- centre column -------------------------------------------------
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 14px;
+
+                ControlCard {
+                    kicker: "TEMEL";
+                    title: "Işık & Ton";
+                    glyph: "sun";
+                    vertical-stretch: 0;
+                    reset-block => {
+                        root.reset-block("light");
+                    }
+
+                    ControlRow {
+                        label: "Parlaklık";
+                        caption: "siyah seviyesini kaldırır";
+                        minimum: -0.5;
+                        maximum: 0.5;
+                        neutral: 0;
+                        value: root.brightness;
+                        display: root.brightness-text;
+                        touched: root.brightness != 0;
+                        fill-brush: @linear-gradient(90deg, #1c1c20 0%, #ffffff 100%);
+                        changed(v) => {
+                            root.changed("brightness", v);
+                        }
+                        committed(v) => {
+                            root.committed("brightness", v);
+                        }
+                        reset => {
+                            root.changed("brightness", 0);
+                        }
+                    }
+
+                    ControlRow {
+                        label: "Kontrast";
+                        caption: "gölge–ışık ayrımı";
+                        minimum: 0.5;
+                        maximum: 2.0;
+                        neutral: 1.0;
+                        value: root.contrast;
+                        display: root.contrast-text;
+                        touched: root.contrast != 1;
+                        fill-brush: @linear-gradient(90deg, #4a4a52 0%, #e8e8ee 100%);
+                        changed(v) => {
+                            root.changed("contrast", v);
+                        }
+                        committed(v) => {
+                            root.committed("contrast", v);
+                        }
+                        reset => {
+                            root.changed("contrast", 1);
+                        }
+                    }
+                }
+
+                ControlCard {
+                    kicker: "RENK";
+                    title: "Renk & Doygunluk";
+                    glyph: "color";
+                    glyph-color: Theme.magenta;
+                    vertical-stretch: 0;
+                    reset-block => {
+                        root.reset-block("color");
+                    }
+
+                    ControlRow {
+                        label: "Doygunluk";
+                        caption: "renk yoğunluğu";
+                        minimum: 0.0;
+                        maximum: 3.0;
+                        neutral: 1.0;
+                        value: root.saturation;
+                        display: root.saturation-text;
+                        touched: root.saturation != 1;
+                        fill-brush: @linear-gradient(90deg, #6b7280 0%, #d946ef 100%);
+                        changed(v) => {
+                            root.changed("saturation", v);
+                        }
+                        committed(v) => {
+                            root.committed("saturation", v);
+                        }
+                        reset => {
+                            root.changed("saturation", 1);
+                        }
+                    }
+
+                    ControlRow {
+                        label: "Renk Tonu";
+                        caption: "tüm paleti döndürür";
+                        minimum: -180;
+                        maximum: 180;
+                        neutral: 0;
+                        value: root.hue;
+                        display: root.hue-text;
+                        touched: root.hue != 0;
+                        fill-brush: @linear-gradient(90deg, #ff4d4d 0%, #ffe600 20%, #4dff88 40%, #4dd2ff 60%, #7c5cff 80%, #ff4d4d 100%);
+                        changed(v) => {
+                            root.changed("hue", v);
+                        }
+                        committed(v) => {
+                            root.committed("hue", v);
+                        }
+                        reset => {
+                            root.changed("hue", 0);
+                        }
+                    }
+                }
+
+                ControlCard {
+                    kicker: "GÖRÜŞ";
+                    title: "Gece Görüşü";
+                    glyph: "moon";
+                    glyph-color: #56d66c;
+                    vertical-stretch: 0;
+                    reset-block => {
+                        root.reset-block("vision");
+                    }
+
+                    ControlRow {
+                        label: "Gece Görüşü";
+                        caption: "karanlıkta detay ayırır";
+                        minimum: 0.0;
+                        maximum: 1.0;
+                        neutral: 0;
+                        value: root.night-vision;
+                        display: root.night-vision-text;
+                        touched: root.night-vision != 0;
+                        fill-brush: @linear-gradient(90deg, #10231a 0%, #56d66c 100%);
+                        changed(v) => {
+                            root.changed("night_vision", v);
+                        }
+                        committed(v) => {
+                            root.committed("night_vision", v);
+                        }
+                        reset => {
+                            root.changed("night_vision", 0);
+                        }
+                    }
+                }
+
+                // the reference leaves this space empty; the live preview earns it
+                Card {
+                    vertical-stretch: 1;
+
+                    VerticalLayout {
+                        padding: 14px;
+                        spacing: 10px;
+
+                        HorizontalLayout {
+                            spacing: 10px;
+                            padding-left: 2px;
+
+                            VerticalLayout {
+                                alignment: center;
+                                spacing: 2px;
+                                horizontal-stretch: 1;
+
+                                Kicker {
+                                    text: "CANLI ÖNİZLEME";
+                                }
+
+                                Text {
+                                    text: "Ayarların ekrana vurmadan önce";
+                                    color: Theme.text;
+                                    font-size: 14px;
+                                    font-weight: 700;
+                                }
+                            }
+
+                            Rectangle {
+                                y: (parent.height - self.height) / 2;
+                                width: 170px;
+                                height: 34px;
+                                horizontal-stretch: 0;
+                                border-radius: 9px;
+                                background: root.comparing ? Theme.accent : (hold.has-hover ? Theme.raised : Theme.panel-alt);
+                                border-width: 1px;
+                                border-color: root.comparing ? Theme.accent : Theme.border;
+                                animate background { duration: 90ms; }
+
+                                Text {
+                                    text: root.comparing ? "orijinal görünüyor" : "basılı tut: orijinal";
+                                    color: root.comparing ? #0a0a0b : Theme.text-dim;
+                                    font-size: 11px;
+                                    font-weight: 600;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+
+                                hold := TouchArea {
+                                    mouse-cursor: pointer;
+                                    pointer-event(ev) => {
+                                        if (ev.kind == PointerEventKind.down) {
+                                            root.compare(true);
+                                        }
+                                        if (ev.kind == PointerEventKind.up || ev.kind == PointerEventKind.cancel) {
+                                            root.compare(false);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        stage := Rectangle {
+                            vertical-stretch: 1;
+                            border-radius: 10px;
+                            clip: true;
+                            background: #050506;
+
+                            Image {
+                                source: root.preview-after;
+                                width: 100%;
+                                height: 100%;
+                                image-fit: fill;
+                            }
+
+                            Rectangle {
+                                x: 0;
+                                width: parent.width * root.split;
+                                height: 100%;
+                                clip: true;
+
+                                Image {
+                                    x: 0;
+                                    width: stage.width;
+                                    height: stage.height;
+                                    source: root.preview-before;
+                                    image-fit: fill;
+                                }
+                            }
+
+                            Rectangle {
+                                x: parent.width * root.split - 1px;
+                                width: 2px;
+                                height: 100%;
+                                background: Theme.accent;
+                            }
+
+                            Rectangle {
+                                x: parent.width * root.split - 15px;
+                                y: parent.height / 2 - 15px;
+                                width: 30px;
+                                height: 30px;
+                                border-radius: 15px;
+                                background: Theme.accent;
+                                drop-shadow-blur: 14px;
+                                drop-shadow-color: #000000;
+
+                                IconSplit {
+                                    x: (parent.width - self.width) / 2;
+                                    y: (parent.height - self.height) / 2;
+                                    size: 16px;
+                                }
+                            }
+
+                            Rectangle {
+                                x: 11px;
+                                y: 11px;
+                                width: 64px;
+                                height: 23px;
+                                border-radius: 6px;
+                                background: #000000cc;
+
+                                Text {
+                                    text: "ÖNCE";
+                                    color: Theme.text-dim;
+                                    font-size: 10px;
+                                    font-weight: 700;
+                                    letter-spacing: 0.8px;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            Rectangle {
+                                x: parent.width - self.width - 11px;
+                                y: 11px;
+                                width: 64px;
+                                height: 23px;
+                                border-radius: 6px;
+                                background: #000000cc;
+
+                                Text {
+                                    text: "SONRA";
+                                    color: Theme.accent;
+                                    font-size: 10px;
+                                    font-weight: 700;
+                                    letter-spacing: 0.8px;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            drag := TouchArea {
+                                mouse-cursor: ew-resize;
+                                moved => {
+                                    if (self.pressed) {
+                                        root.split = Math.min(1, Math.max(0, self.mouse-x / stage.width));
+                                    }
+                                }
+                                pointer-event(ev) => {
+                                    if (ev.kind == PointerEventKind.down) {
+                                        root.split = Math.min(1, Math.max(0, self.mouse-x / stage.width));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Card {
+                    height: 68px;
+                    vertical-stretch: 0;
+
+                    HorizontalLayout {
+                        padding-left: 18px;
+                        padding-right: 14px;
+                        spacing: 14px;
+
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 2px;
+                            horizontal-stretch: 1;
+
+                            Kicker {
+                                text: "DURUM";
+                            }
+
+                            Text {
+                                text: root.status-text;
+                                color: Theme.text;
+                                font-size: 13px;
+                                font-weight: 600;
+                                overflow: elide;
+                            }
+                        }
+
+                        Text {
+                            text: "OTOMATİK UYGULA";
+                            color: Theme.text-dim;
+                            font-size: 11px;
+                            font-weight: 700;
+                            letter-spacing: 0.8px;
+                            vertical-alignment: center;
+                            horizontal-stretch: 0;
+                        }
+
+                        Toggle {
+                            y: (parent.height - self.height) / 2;
+                            checked: root.auto-apply;
+                            horizontal-stretch: 0;
+                            toggled(on) => {
+                                root.toggle-auto(on);
+                            }
+                        }
+
+                        GhostButton {
+                            y: (parent.height - self.height) / 2;
+                            text: "Sıfırla";
+                            width: 112px;
+                            horizontal-stretch: 0;
+                            clicked => {
+                                root.reset-all();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ---- right rail ----------------------------------------------------
+            VerticalLayout {
+                width: 278px;
+                horizontal-stretch: 0;
+                spacing: 14px;
+
+                Card {
+                    vertical-stretch: 0;
+
+                    VerticalLayout {
+                        padding: 16px;
+                        spacing: 10px;
+
+                        HorizontalLayout {
+                            spacing: 9px;
+
+                            IconDoc {
+                                y: (parent.height - self.height) / 2;
+                                size: 16px;
+                                tint: Theme.accent;
+                                horizontal-stretch: 0;
+                            }
+
+                            Kicker {
+                                text: "KAYITLI PROFİL";
+                                vertical-alignment: center;
+                                horizontal-stretch: 1;
+                            }
+                        }
+
+                        SectionTitle {
+                            text: "Profil oluştur";
+                        }
+
+                        Text {
+                            text: "Beş sliderın anlık konumunu isimlendirip saklar.";
+                            color: Theme.text-faint;
+                            font-size: 11px;
+                            wrap: word-wrap;
+                        }
+
+                        Rectangle {
+                            height: 40px;
+                            border-radius: Theme.radius-sm;
+                            background: Theme.panel-alt;
+                            border-width: 1px;
+                            border-color: input.has-focus ? Theme.accent.transparentize(0.55) : Theme.border;
+                            animate border-color { duration: 130ms; }
+
+                            if root.profile-name == "": Text {
+                                x: 13px;
+                                text: "Profil adı girin";
+                                color: Theme.text-faint;
+                                font-size: 12px;
+                                vertical-alignment: center;
+                            }
+
+                            input := TextInput {
+                                x: 13px;
+                                width: parent.width - 26px;
+                                height: 100%;
+                                text: root.profile-name;
+                                color: Theme.text;
+                                font-size: 12px;
+                                vertical-alignment: center;
+                                single-line: true;
+                                edited => {
+                                    root.profile-name = self.text;
+                                }
+                                accepted => {
+                                    root.save-profile();
+                                }
+                            }
+                        }
+
+                        AccentButton {
+                            text: "Profili kaydet";
+                            clicked => {
+                                root.save-profile();
+                            }
+                        }
+                    }
+                }
+
+                Card {
+                    vertical-stretch: 1;
+
+                    VerticalLayout {
+                        padding: 16px;
+                        spacing: 11px;
+
+                        Kicker {
+                            text: "MOTOR";
+                        }
+
+                        SectionTitle {
+                            text: "Nasıl çalışıyor";
+                        }
+
+                        Text {
+                            text: "Windows Magnification API üzerinden tüm masaüstüne 5×5 renk matrisi uygulanır. Oyuna değil ekrana çalışır — her oyunda ve her uygulamada geçerlidir.";
+                            color: Theme.text-dim;
+                            font-size: 11px;
+                            wrap: word-wrap;
+                        }
+
+                        Divider { }
+
+                        Text {
+                            text: "• Oyun dosyası değiştirilmez\n• Sürece enjeksiyon yok\n• Yönetici yetkisi gerekmez\n• Ölçülebilir FPS kaybı yok";
+                            color: Theme.text-faint;
+                            font-size: 11px;
+                            wrap: word-wrap;
+                        }
+
+                        Divider { }
+
+                        Kicker {
+                            text: "CANLI MATRİS";
+                        }
+
+                        Rectangle {
+                            height: 84px;
+                            vertical-stretch: 0;
+                            border-radius: 9px;
+                            background: #08080a;
+                            border-width: 1px;
+                            border-color: Theme.border;
+
+                            Text {
+                                x: 12px;
+                                y: (parent.height - self.height) / 2;
+                                text: root.matrix-text;
+                                color: Theme.accent.transparentize(0.15);
+                                font-size: 10px;
+                                font-family: "Consolas";
+                            }
+                        }
+
+                        Rectangle {
+                            vertical-stretch: 1;
+                        }
+
+                        Text {
+                            text: root.status-detail;
+                            color: Theme.text-faint;
+                            font-size: 10px;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 10px;
+                    vertical-stretch: 0;
+
+                    imp := GhostButton {
+                        height: 44px;
+                        text: "";
+                        clicked => {
+                            root.import-profiles();
+                        }
+
+                        HorizontalLayout {
+                            alignment: center;
+                            spacing: 8px;
+
+                            IconImport {
+                                y: (parent.height - self.height) / 2;
+                                size: 16px;
+                                tint: Theme.text-dim;
+                            }
+
+                            Text {
+                                text: "İçe aktar";
+                                color: Theme.text;
+                                font-size: 12px;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+
+                    exp := GhostButton {
+                        height: 44px;
+                        text: "";
+                        clicked => {
+                            root.export-profiles();
+                        }
+
+                        HorizontalLayout {
+                            alignment: center;
+                            spacing: 8px;
+
+                            IconExport {
+                                y: (parent.height - self.height) / 2;
+                                size: 16px;
+                                tint: Theme.text-dim;
+                            }
+
+                            Text {
+                                text: "Dışa aktar";
+                                color: Theme.text;
+                                font-size: 12px;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if root.settings-open: Rectangle {
+        width: 100%;
+        height: 100%;
+        background: #000000c4;
+
+        TouchArea {
+            clicked => {
+                root.close-settings();
+            }
+        }
+
+        Card {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            width: 520px;
+            height: 440px;
+
+            TouchArea { }
+
+            VerticalLayout {
+                padding: 22px;
+                spacing: 14px;
+
+                HorizontalLayout {
+                    spacing: 10px;
+
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 2px;
+                        horizontal-stretch: 1;
+
+                        Kicker {
+                            text: "AYARLAR";
+                        }
+
+                        Text {
+                            text: "Talkdedsec Visual";
+                            color: Theme.text;
+                            font-size: 19px;
+                            font-weight: 700;
+                        }
+                    }
+
+                    close := IconButton {
+                        y: (parent.height - self.height) / 2;
+                        horizontal-stretch: 0;
+                        clicked => {
+                            root.close-settings();
+                        }
+
+                        IconClose {
+                            x: (parent.width - self.width) / 2;
+                            y: (parent.height - self.height) / 2;
+                            size: 17px;
+                            tint: close.hovered ? #ff6b6b : Theme.text-dim;
+                        }
+                    }
+                }
+
+                Divider { }
+
+                HorizontalLayout {
+                    spacing: 12px;
+
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 2px;
+                        horizontal-stretch: 1;
+
+                        Text {
+                            text: "Windows açılışında başlat";
+                            color: Theme.text;
+                            font-size: 13px;
+                            font-weight: 600;
+                        }
+
+                        Text {
+                            text: "Tepsiye küçültülmüş halde açılır.";
+                            color: Theme.text-faint;
+                            font-size: 10px;
+                        }
+                    }
+
+                    Toggle {
+                        y: (parent.height - self.height) / 2;
+                        checked: root.autostart;
+                        horizontal-stretch: 0;
+                        toggled(on) => {
+                            root.set-autostart(on);
+                        }
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 12px;
+
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 2px;
+                        horizontal-stretch: 1;
+
+                        Text {
+                            text: "Kapatınca tepsiye küçült";
+                            color: Theme.text;
+                            font-size: 13px;
+                            font-weight: 600;
+                        }
+
+                        Text {
+                            text: "Kapalıyken çarpı tuşu programı tamamen kapatır.";
+                            color: Theme.text-faint;
+                            font-size: 10px;
+                        }
+                    }
+
+                    Toggle {
+                        y: (parent.height - self.height) / 2;
+                        checked: root.tray-on-close;
+                        horizontal-stretch: 0;
+                        toggled(on) => {
+                            root.set-tray-close(on);
+                        }
+                    }
+                }
+
+                Divider { }
+
+                VerticalLayout {
+                    spacing: 8px;
+
+                    Text {
+                        text: "Global kısayol";
+                        color: Theme.text;
+                        font-size: 13px;
+                        font-weight: 600;
+                    }
+
+                    Text {
+                        text: "Oyun içindeyken filtreyi açıp kapatır.";
+                        color: Theme.text-faint;
+                        font-size: 10px;
+                    }
+
+                    HorizontalLayout {
+                        spacing: 7px;
+
+                        for key[i] in root.hotkeys: Rectangle {
+                            height: 38px;
+                            border-radius: 9px;
+                            background: root.hotkey-index == i ? Theme.accent : (chip.has-hover ? Theme.raised : Theme.panel-alt);
+                            border-width: 1px;
+                            border-color: root.hotkey-index == i ? Theme.accent : Theme.border;
+                            animate background { duration: 110ms; }
+
+                            Text {
+                                text: key;
+                                color: root.hotkey-index == i ? #0a0a0b : Theme.text-dim;
+                                font-size: 12px;
+                                font-weight: 700;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+
+                            chip := TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => {
+                                    root.set-hotkey(i);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    vertical-stretch: 1;
+                }
+
+                Divider { }
+
+                HorizontalLayout {
+                    spacing: 10px;
+
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 2px;
+                        horizontal-stretch: 1;
+
+                        Text {
+                            text: "Sürüm " + root.version + " · GPL-3.0";
+                            color: Theme.text-dim;
+                            font-size: 11px;
+                        }
+
+                        Text {
+                            text: "© 2026 Talkdedsec";
+                            color: Theme.text-faint;
+                            font-size: 10px;
+                        }
+                    }
+
+                    GhostButton {
+                        y: (parent.height - self.height) / 2;
+                        text: "Kaynak kodu";
+                        width: 128px;
+                        horizontal-stretch: 0;
+                        clicked => {
+                            root.open-source();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
