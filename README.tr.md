@@ -121,10 +121,14 @@ soket açmıyor.
 
 ### İndirmeyi doğrula
 
+Release iş akışı ikiliyi temiz bir GitHub makinesinde derliyor ve yanına
+`talkdedsec-visual.exe.sha256` dosyasını koyuyor; aşağıdaki özet etiketten yeniden
+üretebileceğin özet.
+
 `talkdedsec-visual.exe` için SHA-256, `v0.1.0` sürümü:
 
 ```text
-98fdbbce3e704f1dae4a3854e29c47c44700dbf8aa77de3fbb90696ab204137b
+8bf76c680ad79587a3536cdaff5dd19763a8a595eb6cac15c6e5bbe4ee074c25
 ```
 
 ```powershell
