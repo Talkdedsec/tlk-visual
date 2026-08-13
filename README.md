@@ -124,10 +124,14 @@ no sockets.
 
 ### Verify the download
 
+The release workflow builds the binary on a clean GitHub runner and attaches
+`talkdedsec-visual.exe.sha256` next to it, so the digest below is the one you can reproduce
+from the tag.
+
 SHA-256 for `talkdedsec-visual.exe`, release `v0.1.0`:
 
 ```text
-98fdbbce3e704f1dae4a3854e29c47c44700dbf8aa77de3fbb90696ab204137b
+8bf76c680ad79587a3536cdaff5dd19763a8a595eb6cac15c6e5bbe4ee074c25
 ```
 
 ```powershell
