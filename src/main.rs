@@ -165,14 +165,7 @@ fn open_url(url: &str) {
 
         let verb = HSTRING::from("open");
         let target = HSTRING::from(url);
-        let _ = ShellExecuteW(
-            None,
-            &verb,
-            &target,
-            None,
-            None,
-            SW_SHOWNORMAL,
-        );
+        let _ = ShellExecuteW(None, &verb, &target, None, None, SW_SHOWNORMAL);
     }
     #[cfg(not(windows))]
     let _ = url;
@@ -191,7 +184,9 @@ fn main() -> Result<(), slint::PlatformError> {
     };
 
     let thumbs = Scene::thumbnail(160, 92);
-    ui.set_presets(ModelRc::from(Rc::new(VecModel::from(presets::ui_models(&thumbs)))));
+    ui.set_presets(ModelRc::from(Rc::new(VecModel::from(presets::ui_models(
+        &thumbs,
+    )))));
 
     let profile_model = Rc::new(VecModel::<slint::SharedString>::default());
     profile_model.set_vec(app.borrow().store.names());
@@ -497,7 +492,11 @@ fn main() -> Result<(), slint::PlatformError> {
         move |on| {
             let ui = ui.unwrap();
             let applied = system::set_autostart(on);
-            ui.set_autostart(if applied { on } else { system::autostart_enabled() });
+            ui.set_autostart(if applied {
+                on
+            } else {
+                system::autostart_enabled()
+            });
             let app = app.borrow();
             let status = if applied {
                 if on {
@@ -706,7 +705,7 @@ fn toggle_filter(ui: &MainWindow, app: &Rc<RefCell<App>>) {
         app.push()
     } else {
         if let Some(engine) = app.engine.as_mut() {
-            let _ = engine.reset();
+            engine.reset();
         }
         "Beklemede.".to_string()
     };

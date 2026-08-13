@@ -41,8 +41,8 @@ pub struct Engine {
 #[cfg(windows)]
 mod sys {
     use crate::color::Ramp;
-    use windows::core::PCWSTR;
     use windows::core::BOOL;
+    use windows::core::PCWSTR;
     use windows::Win32::Graphics::Gdi::{
         CreateDCW, DeleteDC, EnumDisplayDevicesW, GetDC, ReleaseDC, DISPLAY_DEVICEW,
         DISPLAY_DEVICE_ATTACHED_TO_DESKTOP, DISPLAY_DEVICE_STATE_FLAGS, HDC,
@@ -106,7 +106,9 @@ mod sys {
                 break;
             }
             index += 1;
-            if device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP == DISPLAY_DEVICE_STATE_FLAGS(0) {
+            if device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP
+                == DISPLAY_DEVICE_STATE_FLAGS(0)
+            {
                 continue;
             }
             let name: Vec<u16> = device
@@ -172,10 +174,6 @@ impl Engine {
         })
     }
 
-    pub fn displays(&self) -> usize {
-        self.original.len()
-    }
-
     fn push(&mut self, ramp: &Ramp) -> bool {
         let mut any = false;
         for (display, _) in &self.original {
@@ -219,7 +217,8 @@ impl Engine {
             .original
             .iter()
             .map(|(display, ramp)| sys::set(display, ramp))
-            .fold(false, |acc, ok| acc || ok);
+            .reduce(|acc, ok| acc || ok)
+            .unwrap_or(false);
 
         if !restored {
             let flat = identity();

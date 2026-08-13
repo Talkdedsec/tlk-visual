@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest something the program should do
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One constraint decides most requests: the engine writes a **gamma ramp**, which is one
+        curve per channel. It cannot mix channels, so saturation, hue rotation, per-window
+        effects and anything that needs to read the screen are out of reach on this path.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: The situation, not the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you have in mind
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: feasible
+    attributes:
+      label: Fit
+      options:
+        - label: This can be expressed as a per-channel curve, or I understand it may not be possible.
+          required: true

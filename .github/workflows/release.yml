@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build and publish
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Tests
+        run: cargo test --all-targets
+
+      - name: Release build
+        run: cargo build --release
+
+      - name: Checksum
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash target/release/talkdedsec-visual.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  talkdedsec-visual.exe" | Set-Content talkdedsec-visual.exe.sha256 -Encoding ascii
+          Write-Host "SHA-256: $hash"
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/release/talkdedsec-visual.exe
+            talkdedsec-visual.exe.sha256
+          generate_release_notes: true

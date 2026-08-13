@@ -4,6 +4,14 @@
 </picture>
 
 <p align="center">
+
+[![CI](https://github.com/Talkdedsec1/talkdedsec-visual/actions/workflows/ci.yml/badge.svg)](https://github.com/Talkdedsec1/talkdedsec-visual/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Talkdedsec1/talkdedsec-visual?color=a3e60b)](https://github.com/Talkdedsec1/talkdedsec-visual/releases/latest)
+[![Licence](https://img.shields.io/badge/licence-GPL--3.0-7c5cff)](LICENSE)
+
+</p>
+
+<p align="center">
   <a href="https://github.com/Talkdedsec1/talkdedsec-visual/releases/latest"><b>download</b></a>
   &nbsp;·&nbsp;
   <a href="#build-from-source"><b>build</b></a>
@@ -116,7 +124,7 @@ no sockets.
 SHA-256 for `talkdedsec-visual.exe`, release `v0.1.0`:
 
 ```text
-63fc9bc06015f94bb1748d072bb51025788f7e080c70a3a8de1129169627bda3
+19850de3a7c3e765275da14abc44b46db2a4cba2aebbd5801077198026e481ec
 ```
 
 ```powershell

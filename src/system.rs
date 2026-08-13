@@ -17,7 +17,10 @@ pub const HOTKEYS: &[(&str, Code)] = &[
 ];
 
 pub fn hotkey_index(label: &str) -> usize {
-    HOTKEYS.iter().position(|(name, _)| *name == label).unwrap_or(3)
+    HOTKEYS
+        .iter()
+        .position(|(name, _)| *name == label)
+        .unwrap_or(3)
 }
 
 pub struct Hotkeys {
@@ -114,10 +117,7 @@ mod registry {
             };
             let command = HSTRING::from(format!("\"{}\" --tray", exe.display()));
             let bytes: &[u8] = unsafe {
-                std::slice::from_raw_parts(
-                    command.as_ptr() as *const u8,
-                    (command.len() + 1) * 2,
-                )
+                std::slice::from_raw_parts(command.as_ptr() as *const u8, (command.len() + 1) * 2)
             };
             unsafe { RegSetValueExW(key, PCWSTR(name.as_ptr()), None, REG_SZ, Some(bytes)) }.is_ok()
         } else {
@@ -180,6 +180,10 @@ mod tests {
         if original {
             set_autostart(true);
         }
-        assert_eq!(autostart_enabled(), original, "test left the registry dirty");
+        assert_eq!(
+            autostart_enabled(),
+            original,
+            "test left the registry dirty"
+        );
     }
 }
