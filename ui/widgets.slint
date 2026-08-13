@@ -4,9 +4,7 @@
 import { Theme } from "theme.slint";
 import { IconReset, IconResetHead } from "icons.slint";
 
-/// The Talkdedsec mark. assets/logo.svg holds the traced vector twin of this
-/// bitmap for README and icon use; the panel draws the raster so the halftone
-/// dots stay evenly weighted at small sizes.
+/// The Talkdedsec mark, tinted at draw time so one asset serves every surface.
 export component Logo inherits Image {
     in property <length> size: 40px;
     in property <color> tint: Theme.text;
@@ -37,6 +35,16 @@ export component TdsSlider inherits Rectangle {
     property <float> span: Math.max(0.000001, root.maximum - root.minimum);
     property <float> ratio: Math.min(1, Math.max(0, (root.value - root.minimum) / root.span));
     property <float> neutral-ratio: Math.min(1, Math.max(0, (root.neutral - root.minimum) / root.span));
+
+    // Arrow keys move by a hundredth of the range; Home and End pin the ends.
+    function nudge(direction: int) {
+        root.jump(root.value + root.span / 100 * direction);
+    }
+
+    function jump(target: float) {
+        self.value = Math.min(root.maximum, Math.max(root.minimum, target));
+        root.changed(self.value);
+    }
 
     function seek(x: length) {
         if (root.width <= root.knob) {
@@ -81,9 +89,11 @@ export component TdsSlider inherits Rectangle {
         height: root.knob;
         border-radius: root.knob / 2;
         background: touch.pressed ? Theme.text : Theme.accent;
-        drop-shadow-blur: 10px;
+        border-width: keys.has-focus ? 2px : 0px;
+        border-color: Theme.text;
+        drop-shadow-blur: keys.has-focus ? 14px : 10px;
         drop-shadow-color: Theme.accent.transparentize(0.55);
-        animate background { duration: 90ms; }
+        animate background, border-width { duration: 90ms; }
     }
 
     touch := TouchArea {
@@ -94,8 +104,33 @@ export component TdsSlider inherits Rectangle {
         }
         pointer-event(ev) => {
             if (ev.kind == PointerEventKind.down) {
+                keys.focus();
                 root.seek(self.mouse-x);
             }
+        }
+    }
+
+    keys := FocusScope {
+        width: 0px;
+        height: 0px;
+        key-pressed(event) => {
+            if (event.text == Key.LeftArrow || event.text == Key.DownArrow) {
+                root.nudge(-1);
+                return accept;
+            }
+            if (event.text == Key.RightArrow || event.text == Key.UpArrow) {
+                root.nudge(1);
+                return accept;
+            }
+            if (event.text == Key.Home) {
+                root.jump(root.minimum);
+                return accept;
+            }
+            if (event.text == Key.End) {
+                root.jump(root.maximum);
+                return accept;
+            }
+            reject
         }
     }
 }
