@@ -3,29 +3,29 @@
 
 use serde::{Deserialize, Serialize};
 
-pub const LUM_R: f32 = 0.2125;
-pub const LUM_G: f32 = 0.7154;
-pub const LUM_B: f32 = 0.0721;
+/// A Windows gamma ramp: 256 entries per channel, red then green then blue.
+pub type Ramp = [u16; 768];
 
-/// Row-major 5x5 affine color matrix, row-vector convention:
-/// `[r g b a 1] * M`, so row 4 carries the per-channel offset.
-pub type Matrix = [f32; 25];
+pub const LEVELS: usize = 256;
 
-pub const IDENTITY: Matrix = [
-    1.0, 0.0, 0.0, 0.0, 0.0, //
-    0.0, 1.0, 0.0, 0.0, 0.0, //
-    0.0, 0.0, 1.0, 0.0, 0.0, //
-    0.0, 0.0, 0.0, 1.0, 0.0, //
-    0.0, 0.0, 0.0, 0.0, 1.0,
-];
+pub fn identity() -> Ramp {
+    let mut ramp = [0u16; 768];
+    for i in 0..LEVELS {
+        let v = (i * 257) as u16;
+        ramp[i] = v;
+        ramp[LEVELS + i] = v;
+        ramp[LEVELS * 2 + i] = v;
+    }
+    ramp
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
     pub brightness: f32,
     pub contrast: f32,
-    pub saturation: f32,
-    pub hue: f32,
+    pub gamma: f32,
+    pub temperature: f32,
     pub night_vision: f32,
 }
 
@@ -34,45 +34,87 @@ impl Default for Settings {
         Self {
             brightness: 0.0,
             contrast: 1.0,
-            saturation: 1.0,
-            hue: 0.0,
+            gamma: 1.0,
+            temperature: 0.0,
             night_vision: 0.0,
         }
     }
 }
 
 impl Settings {
-    pub const BRIGHTNESS_RANGE: (f32, f32) = (-0.5, 0.5);
-    pub const CONTRAST_RANGE: (f32, f32) = (0.5, 2.0);
-    pub const SATURATION_RANGE: (f32, f32) = (0.0, 3.0);
-    pub const HUE_RANGE: (f32, f32) = (-180.0, 180.0);
+    pub const BRIGHTNESS_RANGE: (f32, f32) = (-0.35, 0.35);
+    pub const CONTRAST_RANGE: (f32, f32) = (0.60, 1.80);
+    pub const GAMMA_RANGE: (f32, f32) = (0.50, 2.20);
+    pub const TEMPERATURE_RANGE: (f32, f32) = (-1.0, 1.0);
     pub const NIGHT_VISION_RANGE: (f32, f32) = (0.0, 1.0);
 
     pub fn clamped(self) -> Self {
         Self {
             brightness: clamp(self.brightness, Self::BRIGHTNESS_RANGE),
             contrast: clamp(self.contrast, Self::CONTRAST_RANGE),
-            saturation: clamp(self.saturation, Self::SATURATION_RANGE),
-            hue: clamp(self.hue, Self::HUE_RANGE),
+            gamma: clamp(self.gamma, Self::GAMMA_RANGE),
+            temperature: clamp(self.temperature, Self::TEMPERATURE_RANGE),
             night_vision: clamp(self.night_vision, Self::NIGHT_VISION_RANGE),
         }
     }
 
     pub fn is_neutral(&self) -> bool {
-        near(self.brightness, 0.0)
-            && near(self.contrast, 1.0)
-            && near(self.saturation, 1.0)
-            && near(self.hue, 0.0)
-            && near(self.night_vision, 0.0)
+        let d = Settings::default();
+        near(self.brightness, d.brightness)
+            && near(self.contrast, d.contrast)
+            && near(self.gamma, d.gamma)
+            && near(self.temperature, d.temperature)
+            && near(self.night_vision, d.night_vision)
     }
 
-    pub fn matrix(&self) -> Matrix {
+    /// Value of one channel at input level `v` (0..1), before the ramp is quantised.
+    pub fn channel(&self, v: f32, channel: usize) -> f32 {
         let s = self.clamped();
-        let mut m = contrast_matrix(s.contrast);
-        m = mul(m, saturation_matrix(s.saturation));
-        m = mul(m, hue_matrix(s.hue));
-        m = mul(m, night_vision_matrix(s.night_vision));
-        mul(m, brightness_matrix(s.brightness))
+        let mut x = v.clamp(0.0, 1.0);
+
+        // shadow lift first, so the curve below only reshapes what is already there
+        if s.night_vision > 0.0 {
+            x += s.night_vision * 0.45 * (1.0 - x).powf(2.2);
+        }
+
+        x = x.clamp(0.0, 1.0).powf(1.0 / s.gamma);
+        x = (x - 0.5) * s.contrast + 0.5;
+        x += s.brightness;
+
+        let warm = s.temperature * 0.22;
+        x *= match channel {
+            0 => 1.0 + warm,
+            2 => 1.0 - warm,
+            _ => 1.0 - warm.abs() * 0.06,
+        };
+
+        x.clamp(0.0, 1.0)
+    }
+
+    pub fn ramp(&self) -> Ramp {
+        let mut ramp = [0u16; 768];
+        for channel in 0..3 {
+            for i in 0..LEVELS {
+                let v = i as f32 / (LEVELS - 1) as f32;
+                let out = self.channel(v, channel);
+                ramp[channel * LEVELS + i] = (out * 65535.0 + 0.5) as u16;
+            }
+        }
+        ramp
+    }
+
+    /// Blends toward neutral. Windows rejects ramps that stray too far from
+    /// linear, so the engine walks this down until the driver accepts one.
+    pub fn scaled(&self, factor: f32) -> Self {
+        let f = factor.clamp(0.0, 1.0);
+        let d = Settings::default();
+        Self {
+            brightness: d.brightness + (self.brightness - d.brightness) * f,
+            contrast: d.contrast + (self.contrast - d.contrast) * f,
+            gamma: d.gamma + (self.gamma - d.gamma) * f,
+            temperature: d.temperature + (self.temperature - d.temperature) * f,
+            night_vision: d.night_vision + (self.night_vision - d.night_vision) * f,
+        }
     }
 }
 
@@ -88,190 +130,119 @@ fn near(a: f32, b: f32) -> bool {
     (a - b).abs() < 1e-4
 }
 
-/// `a` applied first, then `b`.
-pub fn mul(a: Matrix, b: Matrix) -> Matrix {
-    let mut out = [0.0f32; 25];
-    for row in 0..5 {
-        for col in 0..5 {
-            let mut sum = 0.0;
-            for k in 0..5 {
-                sum += a[row * 5 + k] * b[k * 5 + col];
-            }
-            out[row * 5 + col] = sum;
-        }
-    }
-    out
-}
-
-pub fn brightness_matrix(b: f32) -> Matrix {
-    let mut m = IDENTITY;
-    m[20] = b;
-    m[21] = b;
-    m[22] = b;
-    m
-}
-
-pub fn contrast_matrix(c: f32) -> Matrix {
-    let offset = 0.5 * (1.0 - c);
-    let mut m = IDENTITY;
-    m[0] = c;
-    m[6] = c;
-    m[12] = c;
-    m[20] = offset;
-    m[21] = offset;
-    m[22] = offset;
-    m
-}
-
-pub fn saturation_matrix(s: f32) -> Matrix {
-    let inv = 1.0 - s;
-    let (r, g, b) = (LUM_R * inv, LUM_G * inv, LUM_B * inv);
-    [
-        r + s, r, r, 0.0, 0.0, //
-        g, g + s, g, 0.0, 0.0, //
-        b, b, b + s, 0.0, 0.0, //
-        0.0, 0.0, 0.0, 1.0, 0.0, //
-        0.0, 0.0, 0.0, 0.0, 1.0,
-    ]
-}
-
-pub fn hue_matrix(degrees: f32) -> Matrix {
-    let theta = degrees.to_radians();
-    let (sin, cos) = theta.sin_cos();
-
-    let rr = 0.213 + cos * 0.787 - sin * 0.213;
-    let rg = 0.715 - cos * 0.715 - sin * 0.715;
-    let rb = 0.072 - cos * 0.072 + sin * 0.928;
-    let gr = 0.213 - cos * 0.213 + sin * 0.143;
-    let gg = 0.715 + cos * 0.285 + sin * 0.140;
-    let gb = 0.072 - cos * 0.072 - sin * 0.283;
-    let br = 0.213 - cos * 0.213 - sin * 0.787;
-    let bg = 0.715 - cos * 0.715 + sin * 0.715;
-    let bb = 0.072 + cos * 0.928 + sin * 0.072;
-
-    [
-        rr, gr, br, 0.0, 0.0, //
-        rg, gg, bg, 0.0, 0.0, //
-        rb, gb, bb, 0.0, 0.0, //
-        0.0, 0.0, 0.0, 1.0, 0.0, //
-        0.0, 0.0, 0.0, 0.0, 1.0,
-    ]
-}
-
-/// Blends toward a luminance-driven green cast with a black lift, so detail in
-/// dark areas separates instead of clipping to black.
-pub fn night_vision_matrix(n: f32) -> Matrix {
-    if n <= 0.0 {
-        return IDENTITY;
-    }
-    const DIM: f32 = 0.35;
-    const GAIN: f32 = 1.75;
-    const LIFT: f32 = 0.10;
-
-    let target = [
-        LUM_R * DIM, LUM_R * GAIN, LUM_R * DIM, 0.0, 0.0, //
-        LUM_G * DIM, LUM_G * GAIN, LUM_G * DIM, 0.0, 0.0, //
-        LUM_B * DIM, LUM_B * GAIN, LUM_B * DIM, 0.0, 0.0, //
-        0.0, 0.0, 0.0, 1.0, 0.0, //
-        LIFT * 0.6, LIFT, LIFT * 0.6, 0.0, 1.0,
-    ];
-
-    let mut out = [0.0f32; 25];
-    for i in 0..25 {
-        out[i] = IDENTITY[i] * (1.0 - n) + target[i] * n;
-    }
-    out
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn apply(m: &Matrix, rgb: [f32; 3]) -> [f32; 3] {
-        let v = [rgb[0], rgb[1], rgb[2], 1.0, 1.0];
-        let mut out = [0.0f32; 3];
-        for col in 0..3 {
-            let mut sum = 0.0;
-            for k in 0..5 {
-                sum += v[k] * m[k * 5 + col];
-            }
-            out[col] = sum;
-        }
-        out
+    fn red(ramp: &Ramp, i: usize) -> u16 {
+        ramp[i]
     }
-
-    fn assert_close(a: [f32; 3], b: [f32; 3]) {
-        for i in 0..3 {
-            assert!((a[i] - b[i]).abs() < 1e-3, "{a:?} != {b:?}");
-        }
+    fn blue(ramp: &Ramp, i: usize) -> u16 {
+        ramp[LEVELS * 2 + i]
     }
 
     #[test]
-    fn default_settings_are_neutral() {
+    fn defaults_are_neutral_and_produce_the_identity_ramp() {
         let s = Settings::default();
         assert!(s.is_neutral());
-        assert_close(apply(&s.matrix(), [0.3, 0.6, 0.9]), [0.3, 0.6, 0.9]);
+        let ramp = s.ramp();
+        let ideal = identity();
+        for i in 0..LEVELS {
+            assert!(
+                (ramp[i] as i32 - ideal[i] as i32).abs() <= 1,
+                "level {i}: {} vs {}",
+                ramp[i],
+                ideal[i]
+            );
+        }
     }
 
     #[test]
-    fn zero_saturation_gives_luminance() {
-        let m = saturation_matrix(0.0);
-        let out = apply(&m, [0.2, 0.5, 0.8]);
-        let lum = LUM_R * 0.2 + LUM_G * 0.5 + LUM_B * 0.8;
-        assert_close(out, [lum, lum, lum]);
+    fn every_ramp_is_monotonic() {
+        let cases = [
+            Settings::default(),
+            Settings { brightness: 0.3, ..Default::default() },
+            Settings { contrast: 1.8, ..Default::default() },
+            Settings { gamma: 2.2, ..Default::default() },
+            Settings { gamma: 0.5, ..Default::default() },
+            Settings { temperature: 1.0, ..Default::default() },
+            Settings { temperature: -1.0, ..Default::default() },
+            Settings { night_vision: 1.0, ..Default::default() },
+        ];
+        for s in cases {
+            let ramp = s.ramp();
+            for channel in 0..3 {
+                for i in 1..LEVELS {
+                    let prev = ramp[channel * LEVELS + i - 1];
+                    let cur = ramp[channel * LEVELS + i];
+                    assert!(cur >= prev, "{s:?} channel {channel} dips at {i}");
+                }
+            }
+        }
     }
 
     #[test]
-    fn contrast_pivots_around_mid_gray() {
-        let m = contrast_matrix(1.8);
-        assert_close(apply(&m, [0.5, 0.5, 0.5]), [0.5, 0.5, 0.5]);
+    fn brightness_lifts_the_whole_curve() {
+        let lifted = Settings { brightness: 0.2, ..Default::default() }.ramp();
+        let flat = Settings::default().ramp();
+        assert!(lifted[10] > flat[10]);
+        assert!(lifted[128] > flat[128]);
     }
 
     #[test]
-    fn hue_rotation_is_identity_at_zero_and_full_turn() {
-        assert_close(apply(&hue_matrix(0.0), [0.4, 0.2, 0.7]), [0.4, 0.2, 0.7]);
-        assert_close(apply(&hue_matrix(360.0), [0.4, 0.2, 0.7]), [0.4, 0.2, 0.7]);
+    fn contrast_pivots_on_mid_grey() {
+        let s = Settings { contrast: 1.8, ..Default::default() };
+        let mid = s.channel(0.5, 0);
+        assert!((mid - 0.5).abs() < 1e-4, "mid grey moved to {mid}");
+        assert!(s.channel(0.25, 0) < 0.25);
+        assert!(s.channel(0.75, 0) > 0.75);
     }
 
     #[test]
-    fn hue_rotation_preserves_gray() {
-        assert_close(apply(&hue_matrix(90.0), [0.5, 0.5, 0.5]), [0.5, 0.5, 0.5]);
+    fn gamma_reshapes_midtones_without_moving_the_ends() {
+        let bright = Settings { gamma: 2.2, ..Default::default() };
+        assert!(bright.channel(0.5, 0) > 0.5);
+        assert!(bright.channel(0.0, 0).abs() < 1e-6);
+        assert!((bright.channel(1.0, 0) - 1.0).abs() < 1e-6);
+
+        let dark = Settings { gamma: 0.5, ..Default::default() };
+        assert!(dark.channel(0.5, 0) < 0.5);
     }
 
     #[test]
-    fn night_vision_lifts_shadows_toward_green() {
-        let dark = [0.05, 0.05, 0.05];
-        let out = apply(&night_vision_matrix(1.0), dark);
-        assert!(out[1] > dark[1], "green should lift: {out:?}");
-        assert!(out[1] > out[0] && out[1] > out[2], "green cast: {out:?}");
+    fn temperature_separates_red_from_blue() {
+        let warm = Settings { temperature: 1.0, ..Default::default() }.ramp();
+        let cool = Settings { temperature: -1.0, ..Default::default() }.ramp();
+        assert!(red(&warm, 200) > blue(&warm, 200), "warm should favour red");
+        assert!(blue(&cool, 200) > red(&cool, 200), "cool should favour blue");
     }
 
     #[test]
-    fn brightness_offsets_every_channel() {
-        assert_close(apply(&brightness_matrix(0.2), [0.1, 0.2, 0.3]), [0.3, 0.4, 0.5]);
-    }
-
-    #[test]
-    fn composition_matches_sequential_application() {
-        let s = Settings {
-            brightness: 0.08,
-            contrast: 1.2,
-            saturation: 1.6,
-            hue: 25.0,
-            night_vision: 0.0,
-        };
-        let rgb = [0.35, 0.55, 0.2];
-        let stepwise = apply(
-            &brightness_matrix(s.brightness),
-            apply(
-                &hue_matrix(s.hue),
-                apply(
-                    &saturation_matrix(s.saturation),
-                    apply(&contrast_matrix(s.contrast), rgb),
-                ),
-            ),
+    fn night_vision_lifts_shadows_far_more_than_highlights() {
+        let s = Settings { night_vision: 1.0, ..Default::default() };
+        let shadow_gain = s.channel(0.02, 0) - 0.02;
+        let highlight_gain = s.channel(0.9, 0) - 0.9;
+        assert!(shadow_gain > 0.3, "shadows barely moved: {shadow_gain}");
+        assert!(
+            highlight_gain < shadow_gain * 0.1,
+            "highlights moved too much: {highlight_gain}"
         );
-        assert_close(apply(&s.matrix(), rgb), stepwise);
+    }
+
+    #[test]
+    fn scaling_to_zero_returns_neutral_and_to_one_returns_the_original() {
+        let s = Settings {
+            brightness: 0.2,
+            contrast: 1.5,
+            gamma: 1.8,
+            temperature: 0.6,
+            night_vision: 0.4,
+        };
+        assert!(s.scaled(0.0).is_neutral());
+        assert_eq!(s.scaled(1.0), s);
+        let half = s.scaled(0.5);
+        assert!((half.brightness - 0.1).abs() < 1e-5);
+        assert!((half.contrast - 1.25).abs() < 1e-5);
     }
 
     #[test]
@@ -279,15 +250,32 @@ mod tests {
         let s = Settings {
             brightness: 99.0,
             contrast: -5.0,
-            saturation: f32::NAN,
-            hue: 400.0,
+            gamma: f32::NAN,
+            temperature: 40.0,
             night_vision: 2.0,
         }
         .clamped();
         assert_eq!(s.brightness, Settings::BRIGHTNESS_RANGE.1);
         assert_eq!(s.contrast, Settings::CONTRAST_RANGE.0);
-        assert_eq!(s.saturation, Settings::SATURATION_RANGE.0);
-        assert_eq!(s.hue, Settings::HUE_RANGE.1);
+        assert_eq!(s.gamma, Settings::GAMMA_RANGE.0);
+        assert_eq!(s.temperature, Settings::TEMPERATURE_RANGE.1);
         assert_eq!(s.night_vision, Settings::NIGHT_VISION_RANGE.1);
+    }
+
+    #[test]
+    fn output_never_leaves_the_representable_range() {
+        let extreme = Settings {
+            brightness: 0.35,
+            contrast: 1.8,
+            gamma: 2.2,
+            temperature: 1.0,
+            night_vision: 1.0,
+        };
+        for channel in 0..3 {
+            for i in 0..LEVELS {
+                let v = extreme.channel(i as f32 / 255.0, channel);
+                assert!((0.0..=1.0).contains(&v), "channel {channel} level {i} = {v}");
+            }
+        }
     }
 }

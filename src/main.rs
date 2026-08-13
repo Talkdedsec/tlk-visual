@@ -14,8 +14,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Duration;
 
-use color::{Settings, IDENTITY};
-use engine::Engine;
+use color::Settings;
+use engine::{Applied, Engine};
 use preview::Scene;
 use profiles::Store;
 use slint::{ModelRc, VecModel};
@@ -57,26 +57,25 @@ impl App {
     }
 
     fn push(&mut self) -> String {
-        let Some(engine) = self.engine.as_mut() else {
-            return "Motor başlatılamadı.".into();
-        };
         if !self.auto_apply {
             return "Beklemede.".into();
         }
-        match engine.apply(&self.settings) {
-            Ok(()) if self.settings.is_neutral() => "Hazır.".into(),
-            Ok(()) => "Uygulandı.".into(),
-            Err(e) => format!("Hata: {e}"),
-        }
+        self.force_apply()
     }
 
     fn force_apply(&mut self) -> String {
+        let neutral = self.settings.is_neutral();
         let Some(engine) = self.engine.as_mut() else {
-            return "Motor başlatılamadı.".into();
+            return "Ekran sürücüsü gama tablosunu kabul etmiyor.".into();
         };
         match engine.apply(&self.settings) {
-            Ok(()) => "Uygulandı.".into(),
-            Err(e) => format!("Hata: {e}"),
+            Applied::Full if neutral => "Hazır.".into(),
+            Applied::Full => "Uygulandı.".into(),
+            Applied::Limited(f) => format!(
+                "Windows tam gücü reddetti — %{} uygulandı.",
+                (f * 100.0).round() as i32
+            ),
+            Applied::Rejected => "Windows bu ayarı reddetti.".into(),
         }
     }
 
@@ -93,11 +92,11 @@ impl App {
         if (s.contrast - d.contrast).abs() > 1e-4 {
             parts.push(format!("Kontrast {}", tr(s.contrast, 2, false)));
         }
-        if (s.saturation - d.saturation).abs() > 1e-4 {
-            parts.push(format!("Doygunluk {}", tr(s.saturation, 2, false)));
+        if (s.gamma - d.gamma).abs() > 1e-4 {
+            parts.push(format!("Gama {}", tr(s.gamma, 2, false)));
         }
-        if s.hue.abs() > 1e-4 {
-            parts.push(format!("Ton {:+.0}°", s.hue));
+        if s.temperature.abs() > 1e-4 {
+            parts.push(format!("Sıcaklık {}", tr(s.temperature, 2, true)));
         }
         if s.night_vision.abs() > 1e-4 {
             parts.push(format!("Gece görüşü {}", tr(s.night_vision, 2, false)));
@@ -119,37 +118,38 @@ fn tr(value: f32, decimals: usize, signed: bool) -> String {
     text.replace('.', ",")
 }
 
-fn matrix_readout(m: &color::Matrix) -> String {
-    ["R", "G", "B", "Δ"]
-        .iter()
-        .zip([0usize, 5, 10, 20])
-        .map(|(label, row)| {
-            format!(
-                "{label} {:>6.2} {:>6.2} {:>6.2}",
-                m[row], m[row + 1], m[row + 2]
-            )
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
+/// Five points along the transfer curve, which is what a gamma ramp really is.
+fn curve_readout(settings: &Settings) -> String {
+    let stops = [0.0f32, 0.25, 0.5, 0.75, 1.0];
+    let mut lines = vec!["in     R    G    B".to_string()];
+    for stop in stops {
+        lines.push(format!(
+            "{:>3}  {:>3}  {:>3}  {:>3}",
+            (stop * 255.0) as i32,
+            (settings.channel(stop, 0) * 255.0).round() as i32,
+            (settings.channel(stop, 1) * 255.0).round() as i32,
+            (settings.channel(stop, 2) * 255.0).round() as i32,
+        ));
+    }
+    lines.join("\n")
 }
 
 fn sync(ui: &MainWindow, app: &App, status: String) {
     let s = app.settings;
     ui.set_brightness(s.brightness);
     ui.set_contrast(s.contrast);
-    ui.set_saturation(s.saturation);
-    ui.set_hue(s.hue);
+    ui.set_gamma(s.gamma);
+    ui.set_temperature(s.temperature);
     ui.set_night_vision(s.night_vision);
 
     ui.set_brightness_text(tr(s.brightness, 2, true).into());
     ui.set_contrast_text(tr(s.contrast, 2, false).into());
-    ui.set_saturation_text(tr(s.saturation, 2, false).into());
-    ui.set_hue_text(format!("{:+.0}", s.hue).into());
+    ui.set_gamma_text(tr(s.gamma, 2, false).into());
+    ui.set_temperature_text(tr(s.temperature, 2, true).into());
     ui.set_night_vision_text(tr(s.night_vision, 2, false).into());
 
-    let matrix = s.matrix();
-    ui.set_preview_after(app.scene.render(&matrix));
-    ui.set_matrix_text(matrix_readout(&matrix).into());
+    ui.set_preview_after(app.scene.render(&s));
+    ui.set_matrix_text(curve_readout(&s).into());
     ui.set_engine_active(!s.is_neutral() && app.auto_apply && app.engine.is_some());
     ui.set_status_text(status.into());
     ui.set_status_detail(app.detail().into());
@@ -197,7 +197,7 @@ fn main() -> Result<(), slint::PlatformError> {
     profile_model.set_vec(app.borrow().store.names());
     ui.set_profiles(ModelRc::from(profile_model.clone()));
 
-    ui.set_preview_before(app.borrow().scene.render(&IDENTITY));
+    ui.set_preview_before(app.borrow().scene.render(&Settings::default()));
     ui.set_version(VERSION.into());
     ui.set_hotkeys(ModelRc::from(Rc::new(VecModel::from(
         system::HOTKEYS
@@ -230,8 +230,8 @@ fn main() -> Result<(), slint::PlatformError> {
             match field.as_str() {
                 "brightness" => app.settings.brightness = value,
                 "contrast" => app.settings.contrast = value,
-                "saturation" => app.settings.saturation = value,
-                "hue" => app.settings.hue = value,
+                "gamma" => app.settings.gamma = value,
+                "temperature" => app.settings.temperature = value,
                 "night_vision" => app.settings.night_vision = value,
                 _ => return,
             }
@@ -256,8 +256,8 @@ fn main() -> Result<(), slint::PlatformError> {
             match field.as_str() {
                 "brightness" => app.settings.brightness = value,
                 "contrast" => app.settings.contrast = value,
-                "saturation" => app.settings.saturation = value,
-                "hue" => app.settings.hue = value,
+                "gamma" => app.settings.gamma = value,
+                "temperature" => app.settings.temperature = value,
                 "night_vision" => app.settings.night_vision = value,
                 _ => return,
             }
@@ -277,7 +277,7 @@ fn main() -> Result<(), slint::PlatformError> {
             ui.set_comparing(holding);
             let status = if holding {
                 if let Some(engine) = app.engine.as_mut() {
-                    let _ = engine.reset();
+                    engine.reset();
                 }
                 "Orijinal görüntü.".to_string()
             } else {
@@ -300,8 +300,8 @@ fn main() -> Result<(), slint::PlatformError> {
                     app.settings.contrast = d.contrast;
                 }
                 "color" => {
-                    app.settings.saturation = d.saturation;
-                    app.settings.hue = d.hue;
+                    app.settings.gamma = d.gamma;
+                    app.settings.temperature = d.temperature;
                 }
                 "vision" => app.settings.night_vision = d.night_vision,
                 _ => return,
@@ -320,7 +320,7 @@ fn main() -> Result<(), slint::PlatformError> {
             let mut app = app.borrow_mut();
             app.settings = Settings::default();
             if let Some(engine) = app.engine.as_mut() {
-                let _ = engine.reset();
+                engine.reset();
             }
             ui.set_selected_preset(0);
             sync(&ui, &app, "Sıfırlandı.".into());
@@ -349,7 +349,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 app.push()
             } else {
                 if let Some(engine) = app.engine.as_mut() {
-                    let _ = engine.reset();
+                    engine.reset();
                 }
                 "Beklemede.".into()
             };
@@ -537,6 +537,45 @@ fn main() -> Result<(), slint::PlatformError> {
                 pos.x + (dx * scale).round() as i32,
                 pos.y + (dy * scale).round() as i32,
             ));
+        }
+    });
+
+    ui.on_resize_window({
+        let ui = ui.as_weak();
+        move |edge, dx, dy| {
+            let ui = ui.unwrap();
+            let window = ui.window();
+            let scale = window.scale_factor();
+            let position = window.position();
+            let size = window.size();
+
+            let min_w = (1160.0 * scale) as i32;
+            let min_h = (680.0 * scale) as i32;
+            let step_x = (dx * scale).round() as i32;
+            let step_y = (dy * scale).round() as i32;
+
+            let (mut x, mut y) = (position.x, position.y);
+            let (mut w, mut h) = (size.width as i32, size.height as i32);
+
+            if edge & 1 != 0 {
+                let next = (w - step_x).max(min_w);
+                x += w - next;
+                w = next;
+            }
+            if edge & 2 != 0 {
+                w = (w + step_x).max(min_w);
+            }
+            if edge & 4 != 0 {
+                let next = (h - step_y).max(min_h);
+                y += h - next;
+                h = next;
+            }
+            if edge & 8 != 0 {
+                h = (h + step_y).max(min_h);
+            }
+
+            window.set_position(slint::PhysicalPosition::new(x, y));
+            window.set_size(slint::PhysicalSize::new(w as u32, h as u32));
         }
     });
 

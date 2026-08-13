@@ -13,46 +13,13 @@ pub struct BuiltIn {
 
 pub const ALL: &[BuiltIn] = &[
     BuiltIn {
-        name: "Canlı",
-        hint: "renkler öne çıkar",
-        settings: Settings {
-            brightness: 0.06,
-            contrast: 1.05,
-            saturation: 1.52,
-            hue: 0.0,
-            night_vision: 0.0,
-        },
-    },
-    BuiltIn {
-        name: "Yaz",
-        hint: "sıcak ve doygun",
+        name: "Berrak",
+        hint: "biraz daha net",
         settings: Settings {
             brightness: 0.03,
-            contrast: 1.06,
-            saturation: 1.38,
-            hue: -6.0,
-            night_vision: 0.0,
-        },
-    },
-    BuiltIn {
-        name: "Kış",
-        hint: "soğuk ve net",
-        settings: Settings {
-            brightness: 0.07,
             contrast: 1.16,
-            saturation: 0.82,
-            hue: -14.0,
-            night_vision: 0.0,
-        },
-    },
-    BuiltIn {
-        name: "Çöl",
-        hint: "toprak tonları",
-        settings: Settings {
-            brightness: 0.02,
-            contrast: 1.04,
-            saturation: 1.24,
-            hue: 14.0,
+            gamma: 1.08,
+            temperature: 0.0,
             night_vision: 0.0,
         },
     },
@@ -60,11 +27,55 @@ pub const ALL: &[BuiltIn] = &[
         name: "Gece Görüşü",
         hint: "karanlıkta detay",
         settings: Settings {
-            brightness: 0.08,
-            contrast: 1.10,
-            saturation: 0.60,
-            hue: 0.0,
+            brightness: 0.04,
+            contrast: 1.05,
+            gamma: 1.35,
+            temperature: -0.1,
             night_vision: 0.85,
+        },
+    },
+    BuiltIn {
+        name: "Sıcak",
+        hint: "göz yormayan ton",
+        settings: Settings {
+            brightness: 0.0,
+            contrast: 1.0,
+            gamma: 1.05,
+            temperature: 0.55,
+            night_vision: 0.0,
+        },
+    },
+    BuiltIn {
+        name: "Soğuk",
+        hint: "mavi ve sert",
+        settings: Settings {
+            brightness: 0.02,
+            contrast: 1.12,
+            gamma: 1.0,
+            temperature: -0.5,
+            night_vision: 0.0,
+        },
+    },
+    BuiltIn {
+        name: "Gece Okuma",
+        hint: "kısık ve sıcak",
+        settings: Settings {
+            brightness: -0.14,
+            contrast: 0.92,
+            gamma: 0.88,
+            temperature: 0.7,
+            night_vision: 0.0,
+        },
+    },
+    BuiltIn {
+        name: "Sert Kontrast",
+        hint: "gölgeler kapanır",
+        settings: Settings {
+            brightness: 0.0,
+            contrast: 1.55,
+            gamma: 1.0,
+            temperature: 0.0,
+            night_vision: 0.0,
         },
     },
 ];
@@ -84,7 +95,7 @@ pub fn ui_models(scene: &Scene) -> Vec<UiPreset> {
         .map(|p| UiPreset {
             name: p.name.into(),
             hint: p.hint.into(),
-            thumb: scene.render(&p.settings.matrix()),
+            thumb: scene.render(&p.settings),
         })
         .collect()
 }

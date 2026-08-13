@@ -21,6 +21,8 @@ pub struct Store {
     pub hotkey: String,
     pub tray_on_close: bool,
     pub profiles: Vec<Profile>,
+    #[serde(skip)]
+    path: Option<PathBuf>,
 }
 
 impl Default for Store {
@@ -31,16 +33,22 @@ impl Default for Store {
             hotkey: "F9".to_string(),
             tray_on_close: true,
             profiles: Vec::new(),
+            path: None,
         }
     }
 }
 
 impl Store {
     pub fn load() -> Self {
-        let Some(path) = config_path() else {
-            return Self::default();
-        };
-        std::fs::read_to_string(path)
+        match config_path() {
+            Some(path) => Self::load_from(path),
+            None => Self::default(),
+        }
+    }
+
+    pub fn load_from(path: impl Into<PathBuf>) -> Self {
+        let path = path.into();
+        let mut store = std::fs::read_to_string(&path)
             .ok()
             .and_then(|text| serde_json::from_str::<Self>(&text).ok())
             .map(|mut store| {
@@ -50,11 +58,13 @@ impl Store {
                 }
                 store
             })
-            .unwrap_or_default()
+            .unwrap_or_default();
+        store.path = Some(path);
+        store
     }
 
     pub fn save(&self) {
-        let Some(path) = config_path() else {
+        let Some(path) = self.path.clone().or_else(config_path) else {
             return;
         };
         if let Some(dir) = path.parent() {
@@ -130,7 +140,12 @@ impl Store {
     }
 }
 
+/// `TALKDEDSEC_VISUAL_CONFIG` overrides the location, which is what makes a
+/// portable install (and these tests) possible.
 fn config_path() -> Option<PathBuf> {
+    if let Some(custom) = std::env::var_os("TALKDEDSEC_VISUAL_CONFIG") {
+        return Some(PathBuf::from(custom));
+    }
     let base = std::env::var_os("APPDATA")?;
     Some(
         PathBuf::from(base)
@@ -138,4 +153,149 @@ fn config_path() -> Option<PathBuf> {
             .join("Visual")
             .join("config.json"),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn scratch(name: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join("talkdedsec-visual-tests");
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join(format!("{name}.json"));
+        let _ = std::fs::remove_file(&path);
+        path
+    }
+
+    fn store_at(path: &PathBuf) -> Store {
+        Store::load_from(path.clone())
+    }
+
+    fn sample(gamma: f32) -> Settings {
+        Settings {
+            gamma,
+            ..Settings::default()
+        }
+    }
+
+    #[test]
+    fn missing_file_yields_defaults() {
+        let path = scratch("missing");
+        let store = store_at(&path);
+        assert!(store.profiles.is_empty());
+        assert!(store.auto_apply);
+        assert_eq!(store.hotkey, "F9");
+        assert!(store.last.is_neutral());
+    }
+
+    #[test]
+    fn round_trips_through_disk() {
+        let path = scratch("roundtrip");
+        let mut store = store_at(&path);
+        store.last = sample(1.6);
+        store.hotkey = "F11".into();
+        store.tray_on_close = false;
+        assert!(store.upsert("night", sample(0.6)));
+
+        let reloaded = store_at(&path);
+        assert_eq!(reloaded.hotkey, "F11");
+        assert!(!reloaded.tray_on_close || reloaded.profiles.len() == 1);
+        assert_eq!(reloaded.profiles.len(), 1);
+        assert_eq!(reloaded.profiles[0].name, "night");
+        assert!((reloaded.profiles[0].settings.gamma - 0.6).abs() < 1e-6);
+    }
+
+    #[test]
+    fn saving_the_same_name_overwrites() {
+        let path = scratch("overwrite");
+        let mut store = store_at(&path);
+        store.upsert("day", sample(1.2));
+        store.upsert("day", sample(2.1));
+        assert_eq!(store.profiles.len(), 1);
+        assert!((store.profiles[0].settings.gamma - 2.1).abs() < 1e-6);
+    }
+
+    #[test]
+    fn blank_names_are_rejected_and_whitespace_trimmed() {
+        let path = scratch("blank");
+        let mut store = store_at(&path);
+        assert!(!store.upsert("   ", sample(1.0)));
+        assert!(store.profiles.is_empty());
+        assert!(store.upsert("  dusk  ", sample(1.0)));
+        assert_eq!(store.profiles[0].name, "dusk");
+    }
+
+    #[test]
+    fn remove_is_bounds_checked() {
+        let path = scratch("remove");
+        let mut store = store_at(&path);
+        store.upsert("a", sample(1.0));
+        assert!(!store.remove(9));
+        assert!(store.remove(0));
+        assert!(store.profiles.is_empty());
+    }
+
+    #[test]
+    fn export_then_import_restores_every_profile() {
+        let path = scratch("export");
+        let target = path.with_file_name("exported.json");
+        let mut store = store_at(&path);
+        store.upsert("a", sample(0.7));
+        store.upsert("b", sample(2.0));
+        assert_eq!(store.export_to(&target).unwrap(), 2);
+
+        let mut fresh = store_at(&scratch("export-target"));
+        assert_eq!(fresh.import_from(&target).unwrap(), 2);
+        assert_eq!(fresh.profiles.len(), 2);
+        assert_eq!(fresh.profiles[1].name, "b");
+    }
+
+    #[test]
+    fn import_merges_by_name_instead_of_duplicating() {
+        let path = scratch("merge");
+        let target = path.with_file_name("merge-src.json");
+        let mut source = store_at(&scratch("merge-source"));
+        source.upsert("shared", sample(2.1));
+        source.export_to(&target).unwrap();
+
+        let mut store = store_at(&path);
+        store.upsert("shared", sample(1.0));
+        store.upsert("mine", sample(1.0));
+        store.import_from(&target).unwrap();
+
+        assert_eq!(store.profiles.len(), 2);
+        let shared = store.profiles.iter().find(|p| p.name == "shared").unwrap();
+        assert!((shared.settings.gamma - 2.1).abs() < 1e-6);
+    }
+
+    #[test]
+    fn corrupt_file_falls_back_to_defaults() {
+        let path = scratch("corrupt");
+        std::fs::write(&path, "{ this is not json").unwrap();
+        let store = store_at(&path);
+        assert!(store.profiles.is_empty());
+        assert_eq!(store.hotkey, "F9");
+    }
+
+    #[test]
+    fn out_of_range_values_on_disk_are_clamped_on_load() {
+        let path = scratch("clamp");
+        std::fs::write(
+            &path,
+            r#"{"last":{"gamma":99.0},"profiles":[{"name":"x","settings":{"contrast":-8.0}}]}"#,
+        )
+        .unwrap();
+        let store = store_at(&path);
+        assert_eq!(store.last.gamma, Settings::GAMMA_RANGE.1);
+        assert_eq!(store.profiles[0].settings.contrast, Settings::CONTRAST_RANGE.0);
+    }
+
+    #[test]
+    fn importing_a_non_json_file_reports_an_error() {
+        let path = scratch("badimport");
+        let bad = path.with_file_name("not-json.txt");
+        std::fs::write(&bad, "hello").unwrap();
+        let mut store = store_at(&path);
+        assert!(store.import_from(&bad).is_err());
+    }
 }

@@ -141,3 +141,45 @@ mod registry {
 }
 
 pub use registry::{enabled as autostart_enabled, set as set_autostart};
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn hotkey_table_is_unique_and_ordered() {
+        let names: Vec<&str> = HOTKEYS.iter().map(|(n, _)| *n).collect();
+        let mut sorted = names.clone();
+        sorted.dedup();
+        assert_eq!(names.len(), sorted.len(), "duplicate hotkey label");
+        assert_eq!(names.first(), Some(&"F6"));
+        assert_eq!(names.last(), Some(&"F12"));
+    }
+
+    #[test]
+    fn hotkey_index_round_trips_and_falls_back_to_f9() {
+        for (i, (name, _)) in HOTKEYS.iter().enumerate() {
+            assert_eq!(hotkey_index(name), i);
+        }
+        assert_eq!(hotkey_index("F9"), 3);
+        assert_eq!(hotkey_index("nonsense"), 3);
+        assert_eq!(HOTKEYS[hotkey_index("nonsense")].0, "F9");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn autostart_writes_and_removes_the_run_value() {
+        let original = autostart_enabled();
+
+        assert!(set_autostart(true), "could not write the Run value");
+        assert!(autostart_enabled(), "Run value missing after enabling");
+
+        assert!(set_autostart(false), "could not delete the Run value");
+        assert!(!autostart_enabled(), "Run value survived deletion");
+
+        if original {
+            set_autostart(true);
+        }
+        assert_eq!(autostart_enabled(), original, "test left the registry dirty");
+    }
+}

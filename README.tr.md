@@ -17,14 +17,14 @@
 
 ## Bu ne
 
-Tüm ekran için bir renk paneli. Beş slider — parlaklık, kontrast, doygunluk, renk tonu ve gece görüşü —
-tek bir 5×5 renk matrisini besliyor, o matris de doğrudan Windows'a veriliyor. Masaüstünün birleştirdiği
-her piksel oradan geçiyor: oyunlar, video, tarayıcı, hepsi.
+Tüm ekran için bir renk paneli. Beş slider — parlaklık, kontrast, gama, renk sıcaklığı ve gece görüşü —
+tek bir gama tablosuna derlenip doğrudan ekran kartına yazılıyor. Panelin gösterdiği her şey oradan
+geçiyor: oyunlar, video, masaüstü, hepsi.
 
 Bu bir oyun modu değil. Oyun klasörüne dosya kopyalanmıyor, hiçbir sürece bağlanılmıyor, kütüphane
-enjekte edilmiyor, sürücü kurulmuyor. Program Windows'tan ekranı renklendirmesini istiyor, Windows da
-yapıyor — Ayarlar'daki yerleşik renk filtrelerinin çalıştığı yolun aynısı. Yönetici yetkisi istememesinin
-ve kare süresinde ölçülebilir bir maliyeti olmamasının sebebi de bu.
+enjekte edilmiyor, sürücü kurulmuyor. Yazılan tablo, monitör kalibrasyon profilinin çevirdiği düğmenin
+aynısı. Yönetici yetkisi istememesinin ve kare süresinde tam olarak sıfır maliyeti olmasının sebebi de
+bu: düzeltme oyunun içinde değil, ekran hattında oluyor.
 
 <br>
 
@@ -33,12 +33,12 @@ ve kare süresinde ölçülebilir bir maliyeti olmamasının sebebi de bu.
 <img src="assets/screenshot.png" width="100%" alt="Talkdedsec Visual paneli: preset rayı, üç kontrol kartı, önce/sonra bölmeli canlı önizleme ve profil rayı">
 
 Sol rayda presetler duruyor; küçük resimler ekran görüntüsü değil, aynı sahnenin o presetin gerçek
-matrisinden geçirilmiş hali — yani kartta gördüğün şey presetin yaptığı şey. Orta sütunda üç kontrol
-kartı. Altında sürüklenebilir önce/sonra bölmeli canlı önizleme: sliderları orada ayarlayıp sonucu ekrana
-hiç dokunmadan görüyorsun. **Basılı tut: orijinal** düğmesi, basılı tuttuğun sürece filtreyi kaldırıyor.
+eğrisinden geçirilmiş hali — kartta gördüğün şey presetin yaptığı şey. Orta sütunda üç kontrol kartı.
+Altında sürüklenebilir önce/sonra bölmeli canlı önizleme: sliderları orada ayarlayıp sonucu ekrana
+ulaşmadan görüyorsun. **Basılı tut: orijinal** düğmesi, basılı tuttuğun sürece efekti kaldırıyor.
 
-Sağ ray profilleri kaydediyor ve canlı matrisi gösteriyor: motorun o an uyguladığı on iki katsayı,
-sürükledikçe güncelleniyor.
+Sağ ray profilleri kaydediyor ve transfer eğrisini yazdırıyor: her giriş seviyesinin kırmızı, yeşil ve
+mavi kanalda neye dönüştüğünü gösteren beş nokta, sürükledikçe güncelleniyor.
 
 <br>
 
@@ -46,34 +46,48 @@ sürükledikçe güncelleniyor.
 
 | Kontrol | Aralık | Nötr | Ne yapıyor |
 |---|---|---|---|
-| Parlaklık | −0,50 … +0,50 | 0,00 | Siyah seviyesini kaldırıyor ya da düşürüyor |
-| Kontrast | 0,50 … 2,00 | 1,00 | Orta griyi merkez alıp gölge–ışık aralığını açıyor |
-| Doygunluk | 0,00 … 3,00 | 1,00 | Renk yoğunluğu; griden aşırı doyguna |
-| Renk Tonu | −180° … +180° | 0° | Tüm paleti döndürüyor |
-| Gece Görüşü | 0,00 … 1,00 | 0,00 | Gölge detayını siyaha kırpmak yerine kaldırıp yeşile çekiyor |
+| Parlaklık | −0,35 … +0,35 | 0,00 | Tüm eğriyi yukarı ya da aşağı kaydırıyor |
+| Kontrast | 0,60 … 1,80 | 1,00 | Orta griyi merkez alıp gölge–ışık aralığını açıyor |
+| Gama | 0,50 … 2,20 | 1,00 | İki uç sabit kalırken orta tonların ağırlığını değiştiriyor |
+| Renk Sıcaklığı | −1,00 … +1,00 | 0,00 | Kırmızıyı maviden ayırarak sıcak ya da soğuk yapıyor |
+| Gece Görüşü | 0,00 … 1,00 | 0,00 | Parlak alanları patlatmadan gölge detayını karanlıktan çekip çıkarıyor |
 
-Her sliderda nötr konumu gösteren bir çizgi var ve her değer kutusu yazılabilir — `1,52` yaz,
+Her sliderda nötr konumu gösteren bir çizgi var ve her değer kutusu yazılabilir — `1,35` yaz,
 <kbd>Enter</kbd>'a bas, tamam.
+
+Doygunluk ve renk tonu bilerek yok. Gama tablosu kanal başına tek eğri; kanalları birbirine karıştıramaz,
+dolayısıyla bu yolda bunların dürüst bir uygulaması mümkün değil. Çalışmayan slider koymaktansa hiç
+koymamak daha doğru.
 
 <br>
 
 ## Nasıl çalışıyor
 
-Beş kontrol tek bir afin matriste birleşiyor ve tek geçişte uygulanıyor:
+256 giriş seviyesinin her biri sabit bir sırayla beş aşamadan geçiyor:
 
 ```
-kontrast → doygunluk → renk tonu → gece görüşü → parlaklık
+gece görüşü → gama → kontrast → parlaklık → renk sıcaklığı
 ```
 
-Birleştirme düpedüz matris çarpımı, dolayısıyla sıra sabit ve sonuç her değişiklikte tek bir
-`MagSetFullscreenColorEffect` çağrısı. Matris matematiği [`src/color.rs`](src/color.rs) içinde ve birim
-testleriyle korunuyor: sıfır doygunluk Rec.709 parlaklığına eşit olmalı, kontrast tam orta gri üzerinde
-dönmeli, 360° ton dönüşü birim matrisi vermeli ve beşini birleştirmek tek tek uygulamakla aynı sonucu
-üretmeli.
+Sonuç, kanal başına 256 girişlik bir tablo; bağlı her ekran için `SetDeviceGammaRamp` ile yazılıyor.
+Matematik [`src/color.rs`](src/color.rs) içinde ve birim testleriyle bağlı: nötr ayar birim tabloyu
+birebir üretmeli, her eğri monoton kalmalı, kontrast orta gri üzerinde dönmeli, gama siyah ve beyaza
+dokunmamalı, gece görüşü gölgeleri parlak alanlardan en az on kat fazla kaldırmalı.
 
 ```bash
 cargo test
 ```
+
+### Windows hayır dediğinde
+
+Windows, doğrusaldan fazla uzaklaşan gama tablolarını reddediyor; bunu açan `GdiIcmGammaRange` kayıt
+değeri ise yönetici yetkisi ve oturum kapatma istiyor. Motor bu durumda hata vermek yerine ayarı
+kademeli düşürüyor — %100, %85, %70 diye — sürücü kabul edene kadar, sonra durum çubuğunda ayarının ne
+kadarının geçtiğini söylüyor.
+
+Gama tabloları, onu yazan süreç ölse bile ekranda kalıyor. Bu yüzden motor açılışta her ekranın mevcut
+tablosunu okuyup saklıyor ve çıkışta geri yazıyor; pencere tepsiye indiğinde ya da efekt kapatıldığında
+da aynı geri yükleme çalışıyor.
 
 <br>
 
@@ -90,15 +104,16 @@ Ayarlar, profiller ve son slider konumları tek bir dosyada:
 %APPDATA%\Talkdedsec\Visual\config.json
 ```
 
-Sil, program sıfırdan açılır. Başka hiçbir yere bir şey yazılmıyor ve hiçbir yere bir şey gönderilmiyor —
-program hiç soket açmıyor.
+Sil, program sıfırdan açılır. `TALKDEDSEC_VISUAL_CONFIG` değişkenine kendi yolunu verirsen taşınabilir
+hale gelir. Başka hiçbir yere bir şey yazılmıyor ve hiçbir yere bir şey gönderilmiyor — program hiç
+soket açmıyor.
 
 ### İndirmeyi doğrula
 
 `talkdedsec-visual.exe` için SHA-256, `v0.1.0` sürümü:
 
 ```text
-a0b2fa66984b46d5a7f3003a8d2e10d38f3cfe6d8881e57b5cca40f2a89bc925
+63fc9bc06015f94bb1748d072bb51025788f7e080c70a3a8de1129169627bda3
 ```
 
 ```powershell
@@ -109,16 +124,16 @@ Get-FileHash .\talkdedsec-visual.exe -Algorithm SHA256
 
 ## Tepside yaşamak
 
-Pencereyi kapatmak programı sonlandırmıyor, tepsiye indiriyor — böylece oynarken filtre açık kalıyor.
-Tepsi menüsü pencereyi geri getiriyor, filtreyi açıp kapatıyor ya da programı gerçekten kapatıyor.
+Pencereyi kapatmak programı sonlandırmıyor, tepsiye indiriyor — böylece oynarken efekt açık kalıyor.
+Tepsi menüsü pencereyi geri getiriyor, efekti açıp kapatıyor ya da programı gerçekten kapatıyor.
 Çarpı tuşunun gerçekten kapatmasını istersen ayarlardan kapatabilirsin.
 
-Global kısayol — <kbd>F6</kbd>–<kbd>F12</kbd> arası, varsayılan <kbd>F9</kbd> — oyundan çıkmadan
-filtreyi açıp kapatıyor. Tuş başka bir program tarafından kullanılıyorsa panel sessizce başarısız olmak
-yerine bunu söylüyor.
+Global kısayol — <kbd>F6</kbd>–<kbd>F12</kbd> arası, varsayılan <kbd>F9</kbd> — oyundan çıkmadan efekti
+açıp kapatıyor. Tuş başka bir program tarafından kullanılıyorsa panel sessizce başarısız olmak yerine
+bunu söylüyor.
 
-Windows açılışında başlatma, `HKCU\...\CurrentVersion\Run` altında tek bir kayıt değeri; kapatınca
-değer siliniyor.
+Windows açılışında başlatma, `HKCU\...\CurrentVersion\Run` altında tek bir kayıt değeri; tepsiye
+küçültülmüş gelsin diye `--tray` ile ekleniyor, kapatınca değer siliniyor.
 
 <br>
 
@@ -133,10 +148,10 @@ makineler arası taşımanın yolu da bu:
   {
     "name": "gece",
     "settings": {
-      "brightness": 0.08,
-      "contrast": 1.1,
-      "saturation": 0.6,
-      "hue": 0.0,
+      "brightness": 0.04,
+      "contrast": 1.05,
+      "gamma": 1.35,
+      "temperature": -0.1,
       "night_vision": 0.85
     }
   }
@@ -158,24 +173,36 @@ Tek gereksinim Rust 1.85 ve üzeri. C++ toolchain adımı yok, Python yok, `node
 
 | Yol | İçinde ne var |
 |---|---|
-| `src/color.rs` | 5×5 matris matematiği ve testleri |
-| `src/engine.rs` | Magnification API bağlantısı |
+| `src/color.rs` | Transfer eğrisi ve testleri |
+| `src/engine.rs` | Gama tablosu okuma/yazma, kademeli geri çekilme, çıkışta geri yükleme |
 | `src/preview.rs` | Prosedürel önizleme sahnesi |
 | `src/presets.rs` | Hazır presetler |
 | `src/profiles.rs` | Profil deposu ve JSON içe/dışa aktarma |
 | `src/system.rs` | Tepsi, global kısayol, açılışta başlatma |
 | `ui/` | Slint arayüzü: `main`, `widgets`, `icons`, `theme` |
 
-`preview.rs` içindeki önizleme sahnesi çekilmiş değil, üretilmiş: gökyüzü geçişi, ağaç hattı, arazi,
-gece görüşünün üzerinde çalışabileceği bilinçli olarak karanlık bir cep ve on iki kareli kalibrasyon
-şeridi. Bu depoda kimsenin görselinden izlenmiş hiçbir şey yok.
+Önizleme sahnesi çekilmiş değil, üretilmiş: gökyüzü geçişi, ağaç hattı, arazi, gece görüşünün üzerinde
+çalışabileceği bilinçli olarak karanlık bir cep ve on iki kareli kalibrasyon şeridi. Bu depoda kimsenin
+görselinden izlenmiş hiçbir şey yok.
+
+<br>
+
+## Bilinen sınırlar
+
+- **Doygunluk ve renk tonu gama tablosuyla mümkün değil.** Yukarıda anlattım.
+- **HDR ekranlarda** çoğu sürücü gama tablosunu yok sayıyor. Hiçbir şey olmuyorsa HDR'ı kapat.
+- **Exclusive fullscreen** ekran hattını oyuna devrediyor; bazı oyunlar girişte tabloyu sıfırlıyor.
+  Güvenilir mod borderless (kenarlıksız pencere).
+- **Tablo ekranın tamamına uygulanıyor.** Sadece oyun değil, o ekrandaki her pencere etkileniyor.
+- **Windows aralığı varsayılan olarak kısıtlıyor,** yani uç ayarlar yumuşatılmış geliyor. Durum çubuğu
+  bunu olduğunda söylüyor.
 
 <br>
 
 ## Oyunlar hakkında
 
-Bu araç ekranın gözüne ne gönderdiğini değiştiriyor, oyunun ekrana ne gönderdiğini değil. Bu gerçek bir
-ayrım ve buradaki hiçbir şeyin anti-cheat'e takılmamasının sebebi de bu.
+Bu araç ekranın görüntüyle ne yaptığını değiştiriyor, oyunun ne çizdiğini değil. Bu gerçek bir ayrım ve
+buradaki hiçbir şeyin anti-cheat'e dokunmamasının sebebi de bu.
 
 Ama bir garanti değil. Bazı rekabetçi oyunlar görüşü iyileştiren harici görüntü ayarlarına izin vermiyor
 ve bu teknik bir soru değil, onların kararı. Oynadığın oyunun kurallarını oku ve kendin karar ver.
