@@ -1,0 +1,81 @@
+name: Bug report
+description: Something behaves differently than documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The status bar is the fastest diagnostic in this program. It tells a rejected ramp
+        apart from a ramp that applied and did nothing visible, so please include it.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got instead.
+    validations:
+      required: true
+
+  - type: input
+    id: status
+    attributes:
+      label: What the status bar said
+      placeholder: e.g. "Uygulandı." or "Windows tam gücü reddetti — %70 uygulandı."
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: v0.1.0, or the commit you built
+    validations:
+      required: true
+
+  - type: input
+    id: windows
+    attributes:
+      label: Windows build
+      description: Run `winver`, or `[System.Environment]::OSVersion.Version` in PowerShell.
+      placeholder: 11 Pro 26200
+    validations:
+      required: true
+
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU and driver
+      placeholder: RTX 3050 Ti + Iris Xe, driver 32.0.16.1062
+    validations:
+      required: true
+
+  - type: dropdown
+    id: hdr
+    attributes:
+      label: Is HDR enabled on the display?
+      options:
+        - "No"
+        - "Yes"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: If a game is involved, how was it running?
+      options:
+        - Not game related
+        - Borderless windowed
+        - Windowed
+        - Exclusive fullscreen
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Config file
+      description: Contents of `%APPDATA%\Talkdedsec\Visual\config.json`, if relevant.
+      render: json

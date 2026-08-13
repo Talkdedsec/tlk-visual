@@ -161,13 +161,34 @@ mod tests {
     fn every_ramp_is_monotonic() {
         let cases = [
             Settings::default(),
-            Settings { brightness: 0.3, ..Default::default() },
-            Settings { contrast: 1.8, ..Default::default() },
-            Settings { gamma: 2.2, ..Default::default() },
-            Settings { gamma: 0.5, ..Default::default() },
-            Settings { temperature: 1.0, ..Default::default() },
-            Settings { temperature: -1.0, ..Default::default() },
-            Settings { night_vision: 1.0, ..Default::default() },
+            Settings {
+                brightness: 0.3,
+                ..Default::default()
+            },
+            Settings {
+                contrast: 1.8,
+                ..Default::default()
+            },
+            Settings {
+                gamma: 2.2,
+                ..Default::default()
+            },
+            Settings {
+                gamma: 0.5,
+                ..Default::default()
+            },
+            Settings {
+                temperature: 1.0,
+                ..Default::default()
+            },
+            Settings {
+                temperature: -1.0,
+                ..Default::default()
+            },
+            Settings {
+                night_vision: 1.0,
+                ..Default::default()
+            },
         ];
         for s in cases {
             let ramp = s.ramp();
@@ -183,7 +204,11 @@ mod tests {
 
     #[test]
     fn brightness_lifts_the_whole_curve() {
-        let lifted = Settings { brightness: 0.2, ..Default::default() }.ramp();
+        let lifted = Settings {
+            brightness: 0.2,
+            ..Default::default()
+        }
+        .ramp();
         let flat = Settings::default().ramp();
         assert!(lifted[10] > flat[10]);
         assert!(lifted[128] > flat[128]);
@@ -191,7 +216,10 @@ mod tests {
 
     #[test]
     fn contrast_pivots_on_mid_grey() {
-        let s = Settings { contrast: 1.8, ..Default::default() };
+        let s = Settings {
+            contrast: 1.8,
+            ..Default::default()
+        };
         let mid = s.channel(0.5, 0);
         assert!((mid - 0.5).abs() < 1e-4, "mid grey moved to {mid}");
         assert!(s.channel(0.25, 0) < 0.25);
@@ -200,26 +228,46 @@ mod tests {
 
     #[test]
     fn gamma_reshapes_midtones_without_moving_the_ends() {
-        let bright = Settings { gamma: 2.2, ..Default::default() };
+        let bright = Settings {
+            gamma: 2.2,
+            ..Default::default()
+        };
         assert!(bright.channel(0.5, 0) > 0.5);
         assert!(bright.channel(0.0, 0).abs() < 1e-6);
         assert!((bright.channel(1.0, 0) - 1.0).abs() < 1e-6);
 
-        let dark = Settings { gamma: 0.5, ..Default::default() };
+        let dark = Settings {
+            gamma: 0.5,
+            ..Default::default()
+        };
         assert!(dark.channel(0.5, 0) < 0.5);
     }
 
     #[test]
     fn temperature_separates_red_from_blue() {
-        let warm = Settings { temperature: 1.0, ..Default::default() }.ramp();
-        let cool = Settings { temperature: -1.0, ..Default::default() }.ramp();
+        let warm = Settings {
+            temperature: 1.0,
+            ..Default::default()
+        }
+        .ramp();
+        let cool = Settings {
+            temperature: -1.0,
+            ..Default::default()
+        }
+        .ramp();
         assert!(red(&warm, 200) > blue(&warm, 200), "warm should favour red");
-        assert!(blue(&cool, 200) > red(&cool, 200), "cool should favour blue");
+        assert!(
+            blue(&cool, 200) > red(&cool, 200),
+            "cool should favour blue"
+        );
     }
 
     #[test]
     fn night_vision_lifts_shadows_far_more_than_highlights() {
-        let s = Settings { night_vision: 1.0, ..Default::default() };
+        let s = Settings {
+            night_vision: 1.0,
+            ..Default::default()
+        };
         let shadow_gain = s.channel(0.02, 0) - 0.02;
         let highlight_gain = s.channel(0.9, 0) - 0.9;
         assert!(shadow_gain > 0.3, "shadows barely moved: {shadow_gain}");
@@ -274,7 +322,10 @@ mod tests {
         for channel in 0..3 {
             for i in 0..LEVELS {
                 let v = extreme.channel(i as f32 / 255.0, channel);
-                assert!((0.0..=1.0).contains(&v), "channel {channel} level {i} = {v}");
+                assert!(
+                    (0.0..=1.0).contains(&v),
+                    "channel {channel} level {i} = {v}"
+                );
             }
         }
     }

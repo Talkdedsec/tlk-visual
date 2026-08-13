@@ -76,7 +76,10 @@ impl Store {
     }
 
     pub fn names(&self) -> Vec<slint::SharedString> {
-        self.profiles.iter().map(|p| p.name.as_str().into()).collect()
+        self.profiles
+            .iter()
+            .map(|p| p.name.as_str().into())
+            .collect()
     }
 
     /// Saving under an existing name overwrites it, so repeated saves do not
@@ -167,8 +170,8 @@ mod tests {
         path
     }
 
-    fn store_at(path: &PathBuf) -> Store {
-        Store::load_from(path.clone())
+    fn store_at(path: &Path) -> Store {
+        Store::load_from(path.to_path_buf())
     }
 
     fn sample(gamma: f32) -> Settings {
@@ -287,7 +290,10 @@ mod tests {
         .unwrap();
         let store = store_at(&path);
         assert_eq!(store.last.gamma, Settings::GAMMA_RANGE.1);
-        assert_eq!(store.profiles[0].settings.contrast, Settings::CONTRAST_RANGE.0);
+        assert_eq!(
+            store.profiles[0].settings.contrast,
+            Settings::CONTRAST_RANGE.0
+        );
     }
 
     #[test]

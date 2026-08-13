@@ -32,7 +32,11 @@ impl Scene {
                 pixels.push(b);
             }
         }
-        Self { width, height, pixels }
+        Self {
+            width,
+            height,
+            pixels,
+        }
     }
 
     pub fn render(&self, settings: &Settings) -> Image {
@@ -136,7 +140,8 @@ fn rocks(u: f32, v: f32, floor: f32) -> f32 {
     let vv = (v - HORIZON) / (floor - HORIZON).max(0.0001);
     let mut cover: f32 = 0.0;
     for (cx, cy, rx, ry) in SPOTS {
-        let d = ((u - cx) / rx).powi(2) + ((vv - cy) / (ry / (floor - HORIZON).max(0.0001) * 0.5)).powi(2);
+        let d = ((u - cx) / rx).powi(2)
+            + ((vv - cy) / (ry / (floor - HORIZON).max(0.0001) * 0.5)).powi(2);
         cover = cover.max((1.0 - d).clamp(0.0, 1.0).powf(0.35));
     }
     cover
@@ -151,7 +156,11 @@ fn sky(u: f32, v: f32) -> [f32; 3] {
 
     let cloud = noise(u * 6.0, v * 9.0) * 0.6 + noise(u * 14.0, v * 18.0) * 0.4;
     let band = ((1.0 - t) * 1.4).min(1.0);
-    mix(rgb, [0.86, 0.89, 0.93], ((cloud - 0.55).max(0.0) * 1.9 * band).min(0.85))
+    mix(
+        rgb,
+        [0.86, 0.89, 0.93],
+        ((cloud - 0.55).max(0.0) * 1.9 * band).min(0.85),
+    )
 }
 
 fn terrain(u: f32, v: f32, floor: f32) -> [f32; 3] {
@@ -162,7 +171,11 @@ fn terrain(u: f32, v: f32, floor: f32) -> [f32; 3] {
     rgb = mix(rgb, [0.16, 0.22, 0.11], (grain - 0.5).max(0.0) * 0.9);
 
     let foliage = noise(u * 8.0 + 3.0, v * 5.0);
-    rgb = mix(rgb, [0.11, 0.19, 0.09], ((foliage - 0.62).max(0.0) * 2.6).min(0.9));
+    rgb = mix(
+        rgb,
+        [0.11, 0.19, 0.09],
+        ((foliage - 0.62).max(0.0) * 2.6).min(0.9),
+    );
 
     let path = 1.0 - ((u - 0.58 - t * 0.16).abs() * 9.0).min(1.0);
     mix(rgb, [0.42, 0.37, 0.26], path * 0.55 * t)
