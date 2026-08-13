@@ -63,6 +63,9 @@ mavi kanalda neye dönüştüğünü gösteren beş nokta, sürükledikçe günc
 Her sliderda nötr konumu gösteren bir çizgi var ve her değer kutusu yazılabilir — `1,35` yaz,
 <kbd>Enter</kbd>'a bas, tamam.
 
+Sliderlar klavyeyi de dinliyor: <kbd>←</kbd> <kbd>→</kbd> aralığın yüzde birini kaydırıyor,
+<kbd>Home</kbd> ve <kbd>End</kbd> uçlara götürüyor.
+
 Doygunluk ve renk tonu bilerek yok. Gama tablosu kanal başına tek eğri; kanalları birbirine karıştıramaz,
 dolayısıyla bu yolda bunların dürüst bir uygulaması mümkün değil. Çalışmayan slider koymaktansa hiç
 koymamak daha doğru.
@@ -121,7 +124,7 @@ soket açmıyor.
 `talkdedsec-visual.exe` için SHA-256, `v0.1.0` sürümü:
 
 ```text
-19850de3a7c3e765275da14abc44b46db2a4cba2aebbd5801077198026e481ec
+98fdbbce3e704f1dae4a3854e29c47c44700dbf8aa77de3fbb90696ab204137b
 ```
 
 ```powershell

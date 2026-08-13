@@ -64,6 +64,9 @@ becomes on the red, green and blue channels, updating as you drag.
 Every slider carries a tick at its neutral position, and every value box is editable — type `1.35`,
 press <kbd>Enter</kbd>, done.
 
+Sliders take the keyboard too: <kbd>←</kbd> <kbd>→</kbd> move by a hundredth of the range,
+<kbd>Home</kbd> and <kbd>End</kbd> pin the ends.
+
 Saturation and hue are deliberately absent. A gamma ramp is one curve per channel and cannot mix
 channels, so no honest implementation of them exists on this path. Shipping dead sliders would be
 worse than leaving them out.
@@ -124,7 +127,7 @@ no sockets.
 SHA-256 for `talkdedsec-visual.exe`, release `v0.1.0`:
 
 ```text
-19850de3a7c3e765275da14abc44b46db2a4cba2aebbd5801077198026e481ec
+98fdbbce3e704f1dae4a3854e29c47c44700dbf8aa77de3fbb90696ab204137b
 ```
 
 ```powershell
