@@ -45,7 +45,7 @@ component ControlRow inherits Rectangle {
     callback committed(string);
     callback reset();
 
-    height: 46px;
+    height: 40px;
     border-radius: 9px;
     background: hover.has-hover ? Theme.panel-alt : transparent;
     animate background { duration: 120ms; }
@@ -122,8 +122,8 @@ component ControlCard inherits Card {
     callback reset-block();
 
     VerticalLayout {
-        padding: 16px;
-        spacing: 8px;
+        padding: 12px;
+        spacing: 5px;
 
         HorizontalLayout {
             spacing: 13px;
@@ -131,9 +131,9 @@ component ControlCard inherits Card {
 
             Rectangle {
                 y: (parent.height - self.height) / 2;
-                width: 38px;
-                height: 38px;
-                border-radius: 11px;
+                width: 32px;
+                height: 32px;
+                border-radius: 10px;
                 background: root.glyph-color.transparentize(0.86);
                 horizontal-stretch: 0;
 
@@ -178,7 +178,7 @@ component ControlCard inherits Card {
                 Text {
                     text: root.title;
                     color: Theme.text;
-                    font-size: 17px;
+                    font-size: 15px;
                     font-weight: 700;
                     font-family: Theme.font;
                 }
@@ -187,7 +187,7 @@ component ControlCard inherits Card {
             GhostButton {
                 y: (parent.height - self.height) / 2;
                 text: "Bloğu sıfırla";
-                width: 122px;
+                width: 112px;
                 horizontal-stretch: 0;
                 clicked => {
                     root.reset-block();
@@ -199,26 +199,126 @@ component ControlCard inherits Card {
     }
 }
 
+
+/// A frameless window has no native resize border, so the grips are drawn here.
+/// Edge is a bitmask: 1 left, 2 right, 4 top, 8 bottom.
+component ResizeFrame inherits Rectangle {
+    callback resize(int, length, length);
+    property <length> grip: 7px;
+
+    TouchArea {
+        x: 0;
+        y: root.grip;
+        width: root.grip;
+        height: parent.height - root.grip * 2;
+        mouse-cursor: ew-resize;
+        moved => { if (self.pressed) { root.resize(1, self.mouse-x - self.pressed-x, 0px); } }
+    }
+
+    TouchArea {
+        x: parent.width - root.grip;
+        y: root.grip;
+        width: root.grip;
+        height: parent.height - root.grip * 2;
+        mouse-cursor: ew-resize;
+        moved => { if (self.pressed) { root.resize(2, self.mouse-x - self.pressed-x, 0px); } }
+    }
+
+    TouchArea {
+        x: root.grip;
+        y: 0;
+        width: parent.width - root.grip * 2;
+        height: root.grip;
+        mouse-cursor: ns-resize;
+        moved => { if (self.pressed) { root.resize(4, 0px, self.mouse-y - self.pressed-y); } }
+    }
+
+    TouchArea {
+        x: root.grip;
+        y: parent.height - root.grip;
+        width: parent.width - root.grip * 2;
+        height: root.grip;
+        mouse-cursor: ns-resize;
+        moved => { if (self.pressed) { root.resize(8, 0px, self.mouse-y - self.pressed-y); } }
+    }
+
+    TouchArea {
+        x: 0;
+        y: 0;
+        width: root.grip;
+        height: root.grip;
+        mouse-cursor: nwse-resize;
+        moved => { if (self.pressed) { root.resize(5, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y); } }
+    }
+
+    TouchArea {
+        x: parent.width - root.grip;
+        y: 0;
+        width: root.grip;
+        height: root.grip;
+        mouse-cursor: nesw-resize;
+        moved => { if (self.pressed) { root.resize(6, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y); } }
+    }
+
+    TouchArea {
+        x: 0;
+        y: parent.height - root.grip;
+        width: root.grip;
+        height: root.grip;
+        mouse-cursor: nesw-resize;
+        moved => { if (self.pressed) { root.resize(9, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y); } }
+    }
+
+    TouchArea {
+        x: parent.width - root.grip;
+        y: parent.height - root.grip;
+        width: root.grip;
+        height: root.grip;
+        mouse-cursor: nwse-resize;
+        moved => { if (self.pressed) { root.resize(10, self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y); } }
+    }
+
+    Rectangle {
+        x: parent.width - 17px;
+        y: parent.height - 17px;
+        width: 11px;
+        height: 11px;
+        Path {
+            width: 100%;
+            height: 100%;
+            viewbox-width: 12;
+            viewbox-height: 12;
+            commands: "M11 1 L1 11 M11 5.5 L5.5 11 M11 10 L10 11";
+            stroke: Theme.text-faint;
+            stroke-width: 1.2px;
+            stroke-line-cap: round;
+            opacity: 0.7;
+        }
+    }
+}
+
 export component MainWindow inherits Window {
     title: "Talkdedsec Visual";
     background: Theme.bg;
     no-frame: true;
     default-font-family: Theme.font;
-    preferred-width: 1372px;
-    preferred-height: 962px;
-    min-width: 1260px;
-    min-height: 860px;
+    // 1920x1080 at 125% scaling leaves 1536x864 logical pixels, and that is the
+    // most common laptop setup, so the window has to fit inside it.
+    preferred-width: 1300px;
+    preferred-height: 828px;
+    min-width: 1160px;
+    min-height: 680px;
 
     in-out property <float> brightness: 0;
     in-out property <float> contrast: 1;
-    in-out property <float> saturation: 1;
-    in-out property <float> hue: 0;
+    in-out property <float> gamma: 1;
+    in-out property <float> temperature: 0;
     in-out property <float> night-vision: 0;
 
     in property <string> brightness-text: "+0,00";
     in property <string> contrast-text: "1,00";
-    in property <string> saturation-text: "1,00";
-    in property <string> hue-text: "+0";
+    in property <string> gamma-text: "1,00";
+    in property <string> temperature-text: "+0,00";
     in property <string> night-vision-text: "0,00";
 
     in property <bool> engine-active: false;
@@ -264,6 +364,7 @@ export component MainWindow inherits Window {
     callback set-tray-close(bool);
     callback set-hotkey(int);
     callback move-window(length, length);
+    callback resize-window(int, length, length);
     callback minimize();
     callback quit();
 
@@ -272,7 +373,7 @@ export component MainWindow inherits Window {
 
         // ---- title bar -------------------------------------------------------
         Rectangle {
-            height: 68px;
+            height: 58px;
             background: Theme.panel-alt;
             vertical-stretch: 0;
 
@@ -455,14 +556,14 @@ export component MainWindow inherits Window {
         }
 
         HorizontalLayout {
-            padding: 14px;
-            spacing: 14px;
+            padding: 10px;
+            spacing: 10px;
 
             // ---- left rail ----------------------------------------------------
             VerticalLayout {
                 width: 246px;
                 horizontal-stretch: 0;
-                spacing: 14px;
+                spacing: 10px;
 
                 Card {
                     vertical-stretch: 1;
@@ -485,8 +586,8 @@ export component MainWindow inherits Window {
                         }
 
                         Rectangle {
-                            height: 46px;
-                            border-radius: 11px;
+                            height: 40px;
+                            border-radius: 10px;
                             background: root.selected-preset == -1 ? Theme.raised : (custom-row.has-hover ? Theme.panel : transparent);
                             border-width: 1px;
                             border-color: root.selected-preset == -1 ? Theme.accent.transparentize(0.55) : Theme.border-soft;
@@ -543,7 +644,7 @@ export component MainWindow inherits Window {
                         }
 
                         for preset[i] in root.presets: Rectangle {
-                            height: 58px;
+                            height: 50px;
                             border-radius: 11px;
                             background: root.selected-preset == i ? Theme.raised : (prow.has-hover ? Theme.panel : transparent);
                             border-width: 1px;
@@ -707,7 +808,7 @@ export component MainWindow inherits Window {
                 }
 
                 Card {
-                    height: 128px;
+                    height: 104px;
                     vertical-stretch: 0;
 
                     VerticalLayout {
@@ -767,7 +868,7 @@ export component MainWindow inherits Window {
             // ---- centre column -------------------------------------------------
             VerticalLayout {
                 horizontal-stretch: 1;
-                spacing: 14px;
+                spacing: 10px;
 
                 ControlCard {
                     kicker: "TEMEL";
@@ -823,7 +924,7 @@ export component MainWindow inherits Window {
 
                 ControlCard {
                     kicker: "RENK";
-                    title: "Renk & Doygunluk";
+                    title: "Gama & Sıcaklık";
                     glyph: "color";
                     glyph-color: Theme.magenta;
                     vertical-stretch: 0;
@@ -832,44 +933,44 @@ export component MainWindow inherits Window {
                     }
 
                     ControlRow {
-                        label: "Doygunluk";
-                        caption: "renk yoğunluğu";
-                        minimum: 0.0;
-                        maximum: 3.0;
+                        label: "Gama";
+                        caption: "orta tonların ağırlığı";
+                        minimum: 0.5;
+                        maximum: 2.2;
                         neutral: 1.0;
-                        value: root.saturation;
-                        display: root.saturation-text;
-                        touched: root.saturation != 1;
-                        fill-brush: @linear-gradient(90deg, #6b7280 0%, #d946ef 100%);
+                        value: root.gamma;
+                        display: root.gamma-text;
+                        touched: root.gamma != 1;
+                        fill-brush: @linear-gradient(90deg, #241f30 0%, #d946ef 100%);
                         changed(v) => {
-                            root.changed("saturation", v);
+                            root.changed("gamma", v);
                         }
                         committed(v) => {
-                            root.committed("saturation", v);
+                            root.committed("gamma", v);
                         }
                         reset => {
-                            root.changed("saturation", 1);
+                            root.changed("gamma", 1);
                         }
                     }
 
                     ControlRow {
-                        label: "Renk Tonu";
-                        caption: "tüm paleti döndürür";
-                        minimum: -180;
-                        maximum: 180;
+                        label: "Renk Sıcaklığı";
+                        caption: "soğuktan sıcağa";
+                        minimum: -1.0;
+                        maximum: 1.0;
                         neutral: 0;
-                        value: root.hue;
-                        display: root.hue-text;
-                        touched: root.hue != 0;
-                        fill-brush: @linear-gradient(90deg, #ff4d4d 0%, #ffe600 20%, #4dff88 40%, #4dd2ff 60%, #7c5cff 80%, #ff4d4d 100%);
+                        value: root.temperature;
+                        display: root.temperature-text;
+                        touched: root.temperature != 0;
+                        fill-brush: @linear-gradient(90deg, #4da6ff 0%, #e8e8ee 50%, #ffb14d 100%);
                         changed(v) => {
-                            root.changed("hue", v);
+                            root.changed("temperature", v);
                         }
                         committed(v) => {
-                            root.committed("hue", v);
+                            root.committed("temperature", v);
                         }
                         reset => {
-                            root.changed("hue", 0);
+                            root.changed("temperature", 0);
                         }
                     }
                 }
@@ -1077,7 +1178,7 @@ export component MainWindow inherits Window {
                 }
 
                 Card {
-                    height: 68px;
+                    height: 58px;
                     vertical-stretch: 0;
 
                     HorizontalLayout {
@@ -1139,7 +1240,7 @@ export component MainWindow inherits Window {
             VerticalLayout {
                 width: 278px;
                 horizontal-stretch: 0;
-                spacing: 14px;
+                spacing: 10px;
 
                 Card {
                     vertical-stretch: 0;
@@ -1235,7 +1336,7 @@ export component MainWindow inherits Window {
                         }
 
                         Text {
-                            text: "Windows Magnification API üzerinden tüm masaüstüne 5×5 renk matrisi uygulanır. Oyuna değil ekrana çalışır — her oyunda ve her uygulamada geçerlidir.";
+                            text: "Ekran kartının gama tablosu doğrudan yeniden yazılır. Oyuna değil panele çalışır — her oyunda ve her uygulamada geçerlidir.";
                             color: Theme.text-dim;
                             font-size: 11px;
                             wrap: word-wrap;
@@ -1253,11 +1354,11 @@ export component MainWindow inherits Window {
                         Divider { }
 
                         Kicker {
-                            text: "CANLI MATRİS";
+                            text: "TRANSFER EĞRİSİ";
                         }
 
                         Rectangle {
-                            height: 84px;
+                            height: 78px;
                             vertical-stretch: 0;
                             border-radius: 9px;
                             background: #08080a;
@@ -1292,7 +1393,7 @@ export component MainWindow inherits Window {
                     vertical-stretch: 0;
 
                     imp := GhostButton {
-                        height: 44px;
+                        height: 40px;
                         text: "";
                         clicked => {
                             root.import-profiles();
@@ -1318,7 +1419,7 @@ export component MainWindow inherits Window {
                     }
 
                     exp := GhostButton {
-                        height: 44px;
+                        height: 40px;
                         text: "";
                         clicked => {
                             root.export-profiles();
@@ -1558,6 +1659,14 @@ export component MainWindow inherits Window {
                     }
                 }
             }
+        }
+    }
+
+    ResizeFrame {
+        width: 100%;
+        height: 100%;
+        resize(edge, dx, dy) => {
+            root.resize-window(edge, dx, dy);
         }
     }
 }

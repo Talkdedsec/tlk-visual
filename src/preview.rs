@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Talkdedsec
 
-use crate::color::Matrix;
+use crate::color::Settings;
 use slint::{Image, Rgb8Pixel, SharedPixelBuffer};
 
 pub struct Scene {
@@ -35,20 +35,22 @@ impl Scene {
         Self { width, height, pixels }
     }
 
-    pub fn render(&self, matrix: &Matrix) -> Image {
+    pub fn render(&self, settings: &Settings) -> Image {
+        let mut lut = [[0u8; 256]; 3];
+        for (channel, table) in lut.iter_mut().enumerate() {
+            for (i, slot) in table.iter_mut().enumerate() {
+                *slot = to_byte(settings.channel(i as f32 / 255.0, channel));
+            }
+        }
+
         let mut buffer = SharedPixelBuffer::<Rgb8Pixel>::new(self.width, self.height);
         let out = buffer.make_mut_slice();
         for (i, px) in out.iter_mut().enumerate() {
             let base = i * 3;
-            let (r, g, b) = (self.pixels[base], self.pixels[base + 1], self.pixels[base + 2]);
-            let mut channel = [0.0f32; 3];
-            for (c, slot) in channel.iter_mut().enumerate() {
-                *slot = r * matrix[c] + g * matrix[5 + c] + b * matrix[10 + c] + matrix[15 + c] + matrix[20 + c];
-            }
             *px = Rgb8Pixel {
-                r: to_byte(channel[0]),
-                g: to_byte(channel[1]),
-                b: to_byte(channel[2]),
+                r: lut[0][to_byte(self.pixels[base]) as usize],
+                g: lut[1][to_byte(self.pixels[base + 1]) as usize],
+                b: lut[2][to_byte(self.pixels[base + 2]) as usize],
             };
         }
         Image::from_rgb8(buffer)
