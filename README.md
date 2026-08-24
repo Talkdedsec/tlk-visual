@@ -5,14 +5,14 @@
 
 <p align="center">
 
-[![CI](https://github.com/Talkdedsec1/talkdedsec-visual/actions/workflows/ci.yml/badge.svg)](https://github.com/Talkdedsec1/talkdedsec-visual/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/Talkdedsec1/talkdedsec-visual?color=a3e60b)](https://github.com/Talkdedsec1/talkdedsec-visual/releases/latest)
+[![CI](https://github.com/Talkdedsec1/tlk-visual/actions/workflows/ci.yml/badge.svg)](https://github.com/Talkdedsec1/tlk-visual/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Talkdedsec1/tlk-visual?color=a3e60b)](https://github.com/Talkdedsec1/tlk-visual/releases/latest)
 [![Licence](https://img.shields.io/badge/licence-GPL--3.0-7c5cff)](LICENSE)
 
 </p>
 
 <p align="center">
-  <a href="https://github.com/Talkdedsec1/talkdedsec-visual/releases/latest"><b>download</b></a>
+  <a href="https://github.com/Talkdedsec1/tlk-visual/releases/latest"><b>download</b></a>
   &nbsp;·&nbsp;
   <a href="#build-from-source"><b>build</b></a>
   &nbsp;·&nbsp;
@@ -106,8 +106,12 @@ tray or the effect is toggled off.
 
 ## Install
 
+Windows 10 or 11, 64-bit. Built and tested on Windows 11; the two calls it depends on,
+`GetDeviceGammaRamp` and `SetDeviceGammaRamp`, have been in Windows since 2000, so 10 works as far as
+the driver allows it.
+
 Download `talkdedsec-visual.exe` from
-[Releases](https://github.com/Talkdedsec1/talkdedsec-visual/releases/latest) and run it. One file, no
+[Releases](https://github.com/Talkdedsec1/tlk-visual/releases/latest) and run it. One file, no
 installer, no .NET, no WebView2, no runtime of any kind. Windows SmartScreen will warn you the first
 time because the binary is not code-signed yet; verify the checksum below before choosing
 **More info → Run anyway**.
@@ -181,8 +185,8 @@ back, which is also how you move them between machines:
 ## Build from source
 
 ```bash
-git clone https://github.com/Talkdedsec1/talkdedsec-visual
-cd talkdedsec-visual
+git clone https://github.com/Talkdedsec1/tlk-visual
+cd tlk-visual
 cargo build --release
 ```
 
@@ -212,6 +216,9 @@ repository is traced from anyone else's artwork.
 - **Exclusive fullscreen** hands the display pipeline to the game; some titles reset the ramp on entry.
   Borderless windowed is the reliable mode.
 - **The ramp is global.** Every window on that display is affected, not just the game.
+- **Every attached display gets the same ramp.** The program writes to all of them and there is no
+  per-monitor selection, so a second screen you wanted left alone is not left alone. Mixed panels
+  will not land on the same result either — the ramp is a curve, not a calibration.
 - **Windows clamps the range** by default, so extreme settings arrive softened. The status bar tells
   you when that happened.
 

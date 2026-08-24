@@ -35,6 +35,6 @@ The latest release is the supported one.
 ## Reporting a vulnerability
 
 Report privately through
-[GitHub Security Advisories](https://github.com/Talkdedsec1/talkdedsec-visual/security/advisories/new)
+[GitHub Security Advisories](https://github.com/Talkdedsec1/tlk-visual/security/advisories/new)
 rather than a public issue. Include the version, your Windows build and the steps to
 reproduce. Expect a first reply within a week.

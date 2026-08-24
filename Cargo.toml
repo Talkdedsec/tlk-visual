@@ -6,7 +6,7 @@ rust-version = "1.85"
 license = "GPL-3.0-or-later"
 authors = ["Talkdedsec"]
 description = "Real-time screen color engine for Windows"
-repository = "https://github.com/Talkdedsec1/talkdedsec-visual"
+repository = "https://github.com/Talkdedsec1/tlk-visual"
 
 [build-dependencies]
 slint-build = "1"

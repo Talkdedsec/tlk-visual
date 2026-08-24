@@ -5,14 +5,14 @@
 
 <p align="center">
 
-[![CI](https://github.com/Talkdedsec1/talkdedsec-visual/actions/workflows/ci.yml/badge.svg)](https://github.com/Talkdedsec1/talkdedsec-visual/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/Talkdedsec1/talkdedsec-visual?color=a3e60b)](https://github.com/Talkdedsec1/talkdedsec-visual/releases/latest)
+[![CI](https://github.com/Talkdedsec1/tlk-visual/actions/workflows/ci.yml/badge.svg)](https://github.com/Talkdedsec1/tlk-visual/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Talkdedsec1/tlk-visual?color=a3e60b)](https://github.com/Talkdedsec1/tlk-visual/releases/latest)
 [![Licence](https://img.shields.io/badge/licence-GPL--3.0-7c5cff)](LICENSE)
 
 </p>
 
 <p align="center">
-  <a href="https://github.com/Talkdedsec1/talkdedsec-visual/releases/latest"><b>indir</b></a>
+  <a href="https://github.com/Talkdedsec1/tlk-visual/releases/latest"><b>indir</b></a>
   &nbsp;·&nbsp;
   <a href="#kaynaktan-derleme"><b>derle</b></a>
   &nbsp;·&nbsp;
@@ -104,7 +104,11 @@ da aynı geri yükleme çalışıyor.
 
 ## Kurulum
 
-[Releases](https://github.com/Talkdedsec1/talkdedsec-visual/releases/latest) sayfasından
+Windows 10 ya da 11, 64-bit. Windows 11'de derlenip test edildi; dayandığı iki çağrı,
+`GetDeviceGammaRamp` ve `SetDeviceGammaRamp`, 2000'den beri Windows'ta olduğu için sürücünün izin
+verdiği ölçüde 10'da da çalışır.
+
+[Releases](https://github.com/Talkdedsec1/tlk-visual/releases/latest) sayfasından
 `talkdedsec-visual.exe` dosyasını indir ve çalıştır. Tek dosya; kurulum yok, .NET yok, WebView2 yok,
 hiçbir runtime yok. Dosya henüz imzalı olmadığı için Windows SmartScreen ilk seferinde uyarı verecek;
 **Ek bilgi → Yine de çalıştır** demeden önce aşağıdaki özeti doğrula.
@@ -178,8 +182,8 @@ makineler arası taşımanın yolu da bu:
 ## Kaynaktan derleme
 
 ```bash
-git clone https://github.com/Talkdedsec1/talkdedsec-visual
-cd talkdedsec-visual
+git clone https://github.com/Talkdedsec1/tlk-visual
+cd tlk-visual
 cargo build --release
 ```
 
@@ -209,6 +213,9 @@ görselinden izlenmiş hiçbir şey yok.
 - **Exclusive fullscreen** ekran hattını oyuna devrediyor; bazı oyunlar girişte tabloyu sıfırlıyor.
   Güvenilir mod borderless (kenarlıksız pencere).
 - **Tablo ekranın tamamına uygulanıyor.** Sadece oyun değil, o ekrandaki her pencere etkileniyor.
+- **Bağlı her ekran aynı tabloyu alıyor.** Program hepsine yazıyor, ekran başına seçim yok; yani
+  dokunulmasını istemediğin ikinci ekran da dokunulmuş oluyor. Farklı paneller aynı sonuca da
+  varmıyor — bu bir eğri, kalibrasyon değil.
 - **Windows aralığı varsayılan olarak kısıtlıyor,** yani uç ayarlar yumuşatılmış geliyor. Durum çubuğu
   bunu olduğunda söylüyor.
 

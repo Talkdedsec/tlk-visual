@@ -24,7 +24,7 @@ use tray_icon::{Icon, TrayIconBuilder};
 
 slint::include_modules!();
 
-const REPO_URL: &str = "https://github.com/Talkdedsec1/talkdedsec-visual";
+const REPO_URL: &str = "https://github.com/Talkdedsec1/tlk-visual";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 struct App {
