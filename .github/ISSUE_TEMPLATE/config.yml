@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/Talkdedsec1/tlk-visual/security/advisories/new
+    url: https://github.com/Talkdedsec/tlk-visual/security/advisories/new
     about: Report privately instead of opening a public issue.

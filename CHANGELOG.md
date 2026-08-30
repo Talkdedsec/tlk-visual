@@ -38,4 +38,4 @@ First public release.
 - Exclusive fullscreen hands the display pipeline to the game; borderless windowed is the
   reliable mode.
 
-[0.1.0]: https://github.com/Talkdedsec1/tlk-visual/releases/tag/v0.1.0
+[0.1.0]: https://github.com/Talkdedsec/tlk-visual/releases/tag/v0.1.0
