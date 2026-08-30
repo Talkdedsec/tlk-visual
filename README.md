@@ -5,14 +5,14 @@
 
 <p align="center">
 
-[![CI](https://github.com/Talkdedsec1/tlk-visual/actions/workflows/ci.yml/badge.svg)](https://github.com/Talkdedsec1/tlk-visual/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/Talkdedsec1/tlk-visual?color=a3e60b)](https://github.com/Talkdedsec1/tlk-visual/releases/latest)
+[![CI](https://github.com/Talkdedsec/tlk-visual/actions/workflows/ci.yml/badge.svg)](https://github.com/Talkdedsec/tlk-visual/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Talkdedsec/tlk-visual?color=a3e60b)](https://github.com/Talkdedsec/tlk-visual/releases/latest)
 [![Licence](https://img.shields.io/badge/licence-GPL--3.0-7c5cff)](LICENSE)
 
 </p>
 
 <p align="center">
-  <a href="https://github.com/Talkdedsec1/tlk-visual/releases/latest"><b>download</b></a>
+  <a href="https://github.com/Talkdedsec/tlk-visual/releases/latest"><b>download</b></a>
   &nbsp;·&nbsp;
   <a href="#build-from-source"><b>build</b></a>
   &nbsp;·&nbsp;
@@ -111,7 +111,7 @@ Windows 10 or 11, 64-bit. Built and tested on Windows 11; the two calls it depen
 the driver allows it.
 
 Download `talkdedsec-visual.exe` from
-[Releases](https://github.com/Talkdedsec1/tlk-visual/releases/latest) and run it. One file, no
+[Releases](https://github.com/Talkdedsec/tlk-visual/releases/latest) and run it. One file, no
 installer, no .NET, no WebView2, no runtime of any kind. Windows SmartScreen will warn you the first
 time because the binary is not code-signed yet; verify the checksum below before choosing
 **More info → Run anyway**.
@@ -185,7 +185,7 @@ back, which is also how you move them between machines:
 ## Build from source
 
 ```bash
-git clone https://github.com/Talkdedsec1/tlk-visual
+git clone https://github.com/Talkdedsec/tlk-visual
 cd tlk-visual
 cargo build --release
 ```

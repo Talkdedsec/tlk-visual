@@ -5,14 +5,14 @@
 
 <p align="center">
 
-[![CI](https://github.com/Talkdedsec1/tlk-visual/actions/workflows/ci.yml/badge.svg)](https://github.com/Talkdedsec1/tlk-visual/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/Talkdedsec1/tlk-visual?color=a3e60b)](https://github.com/Talkdedsec1/tlk-visual/releases/latest)
+[![CI](https://github.com/Talkdedsec/tlk-visual/actions/workflows/ci.yml/badge.svg)](https://github.com/Talkdedsec/tlk-visual/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Talkdedsec/tlk-visual?color=a3e60b)](https://github.com/Talkdedsec/tlk-visual/releases/latest)
 [![Licence](https://img.shields.io/badge/licence-GPL--3.0-7c5cff)](LICENSE)
 
 </p>
 
 <p align="center">
-  <a href="https://github.com/Talkdedsec1/tlk-visual/releases/latest"><b>indir</b></a>
+  <a href="https://github.com/Talkdedsec/tlk-visual/releases/latest"><b>indir</b></a>
   &nbsp;·&nbsp;
   <a href="#kaynaktan-derleme"><b>derle</b></a>
   &nbsp;·&nbsp;
@@ -108,7 +108,7 @@ Windows 10 ya da 11, 64-bit. Windows 11'de derlenip test edildi; dayandığı ik
 `GetDeviceGammaRamp` ve `SetDeviceGammaRamp`, 2000'den beri Windows'ta olduğu için sürücünün izin
 verdiği ölçüde 10'da da çalışır.
 
-[Releases](https://github.com/Talkdedsec1/tlk-visual/releases/latest) sayfasından
+[Releases](https://github.com/Talkdedsec/tlk-visual/releases/latest) sayfasından
 `talkdedsec-visual.exe` dosyasını indir ve çalıştır. Tek dosya; kurulum yok, .NET yok, WebView2 yok,
 hiçbir runtime yok. Dosya henüz imzalı olmadığı için Windows SmartScreen ilk seferinde uyarı verecek;
 **Ek bilgi → Yine de çalıştır** demeden önce aşağıdaki özeti doğrula.
@@ -182,7 +182,7 @@ makineler arası taşımanın yolu da bu:
 ## Kaynaktan derleme
 
 ```bash
-git clone https://github.com/Talkdedsec1/tlk-visual
+git clone https://github.com/Talkdedsec/tlk-visual
 cd tlk-visual
 cargo build --release
 ```
