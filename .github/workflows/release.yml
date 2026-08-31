@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 env:
   CARGO_TERM_COLOR: always
@@ -37,6 +39,11 @@ jobs:
           $hash = (Get-FileHash target/release/talkdedsec-visual.exe -Algorithm SHA256).Hash.ToLower()
           "$hash  talkdedsec-visual.exe" | Set-Content talkdedsec-visual.exe.sha256 -Encoding ascii
           Write-Host "SHA-256: $hash"
+
+      - name: Provenance for the binary
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: target/release/talkdedsec-visual.exe
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
