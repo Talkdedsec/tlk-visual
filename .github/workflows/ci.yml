@@ -40,7 +40,7 @@ jobs:
         run: cargo build --release
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: talkdedsec-visual
           path: target/release/talkdedsec-visual.exe
