@@ -108,7 +108,14 @@ Windows 10 ya da 11, 64-bit. Windows 11'de derlenip test edildi; dayandığı ik
 `GetDeviceGammaRamp` ve `SetDeviceGammaRamp`, 2000'den beri Windows'ta olduğu için sürücünün izin
 verdiği ölçüde 10'da da çalışır.
 
-[Releases](https://github.com/Talkdedsec/tlk-visual/releases/latest) sayfasından
+[Scoop](https://scoop.sh) ile — güncellemeleri de kendi getirir:
+
+```console
+scoop bucket add tlk https://github.com/Talkdedsec/scoop-tlk
+scoop install tlk/tlk-visual
+```
+
+Ya da [Releases](https://github.com/Talkdedsec/tlk-visual/releases/latest) sayfasından
 `talkdedsec-visual.exe` dosyasını indir ve çalıştır. Tek dosya; kurulum yok, .NET yok, WebView2 yok,
 hiçbir runtime yok. Dosya henüz imzalı olmadığı için Windows SmartScreen ilk seferinde uyarı verecek;
 **Ek bilgi → Yine de çalıştır** demeden önce aşağıdaki özeti doğrula.
