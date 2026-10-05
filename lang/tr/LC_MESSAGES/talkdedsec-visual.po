@@ -1,0 +1,190 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: tr\n"
+
+msgid "Ready."
+msgstr "Hazır."
+
+msgid "Display untouched."
+msgstr "Ekran dokunulmadı."
+
+msgid "ACTIVE"
+msgstr "AKTİF"
+
+msgid "IDLE"
+msgstr "BOŞTA"
+
+msgid "Reset block"
+msgstr "Bloğu sıfırla"
+
+msgid "PRESETS"
+msgstr "PRESETLER"
+
+msgid "Ready-made looks"
+msgstr "Hazır görünümler"
+
+msgid "Custom"
+msgstr "Özel"
+
+msgid "MY PROFILES"
+msgstr "PROFİLLERİM"
+
+msgid "No profiles yet"
+msgstr "Henüz profil yok"
+
+msgid "Save one from the panel on the right."
+msgstr "Sağdaki panelden kaydet."
+
+msgid "OPEN SOURCE"
+msgstr "AÇIK KAYNAK"
+
+msgid "The source code is open"
+msgstr "Kaynak kodu açık"
+
+msgid "GPL-3.0 · contributions welcome"
+msgstr "GPL-3.0 · katkıya açık"
+
+msgid "Open on GitHub"
+msgstr "GitHub'da aç"
+
+msgid "BASICS"
+msgstr "TEMEL"
+
+msgid "Light & Tone"
+msgstr "Işık & Ton"
+
+msgid "Brightness"
+msgstr "Parlaklık"
+
+msgid "lifts the black level"
+msgstr "siyah seviyesini kaldırır"
+
+msgid "Contrast"
+msgstr "Kontrast"
+
+msgid "shadow–highlight separation"
+msgstr "gölge–ışık ayrımı"
+
+msgid "COLOUR"
+msgstr "RENK"
+
+msgid "Gamma & Temperature"
+msgstr "Gama & Sıcaklık"
+
+msgid "Gamma"
+msgstr "Gama"
+
+msgid "weight of the midtones"
+msgstr "orta tonların ağırlığı"
+
+msgid "Colour Temperature"
+msgstr "Renk Sıcaklığı"
+
+msgid "cool to warm"
+msgstr "soğuktan sıcağa"
+
+msgid "VISION"
+msgstr "GÖRÜŞ"
+
+msgid "Night Vision"
+msgstr "Gece Görüşü"
+
+msgid "separates detail in the dark"
+msgstr "karanlıkta detay ayırır"
+
+msgid "LIVE PREVIEW"
+msgstr "CANLI ÖNİZLEME"
+
+msgid "Your settings before they reach the screen"
+msgstr "Ayarların ekrana vurmadan önce"
+
+msgid "showing the original"
+msgstr "orijinal görünüyor"
+
+msgid "hold to compare"
+msgstr "basılı tut: orijinal"
+
+msgid "BEFORE"
+msgstr "ÖNCE"
+
+msgid "AFTER"
+msgstr "SONRA"
+
+msgid "STATUS"
+msgstr "DURUM"
+
+msgid "AUTO-APPLY"
+msgstr "OTOMATİK UYGULA"
+
+msgid "Reset"
+msgstr "Sıfırla"
+
+msgid "SAVED PROFILE"
+msgstr "KAYITLI PROFİL"
+
+msgid "Create a profile"
+msgstr "Profil oluştur"
+
+msgid "Saves the five sliders under a name."
+msgstr "Beş sliderın anlık konumunu isimlendirip saklar."
+
+msgid "Profile name"
+msgstr "Profil adı girin"
+
+msgid "Save profile"
+msgstr "Profili kaydet"
+
+msgid "ENGINE"
+msgstr "MOTOR"
+
+msgid "How it works"
+msgstr "Nasıl çalışıyor"
+
+msgid "The display adapter's gamma ramp is rewritten directly. It works on the panel, not the game — so it applies to every game and every app."
+msgstr "Ekran kartının gama tablosu doğrudan yeniden yazılır. Oyuna değil panele çalışır — her oyunda ve her uygulamada geçerlidir."
+
+msgid "• No game files are changed\n• No process injection\n• No administrator rights needed\n• No measurable FPS loss"
+msgstr "• Oyun dosyası değiştirilmez\n• Sürece enjeksiyon yok\n• Yönetici yetkisi gerekmez\n• Ölçülebilir FPS kaybı yok"
+
+msgid "TRANSFER CURVE"
+msgstr "TRANSFER EĞRİSİ"
+
+msgid "Import"
+msgstr "İçe aktar"
+
+msgid "Export"
+msgstr "Dışa aktar"
+
+msgid "SETTINGS"
+msgstr "AYARLAR"
+
+msgid "Start with Windows"
+msgstr "Windows açılışında başlat"
+
+msgid "Opens minimised to the tray."
+msgstr "Tepsiye küçültülmüş halde açılır."
+
+msgid "Minimise to the tray on close"
+msgstr "Kapatınca tepsiye küçült"
+
+msgid "When off, the close button quits the program."
+msgstr "Kapalıyken çarpı tuşu programı tamamen kapatır."
+
+msgid "Global shortcut"
+msgstr "Global kısayol"
+
+msgid "Turns the filter on and off while you are in a game."
+msgstr "Oyun içindeyken filtreyi açıp kapatır."
+
+msgid "Language"
+msgstr "Dil"
+
+msgid "The window, tray menu and messages. Follows Windows until you pick one."
+msgstr "Pencere, tepsi menüsü ve mesajlar. Seçim yapana kadar Windows dilini izler."
+
+msgid "Version {} · GPL-3.0"
+msgstr "Sürüm {} · GPL-3.0"
+
+msgid "Source code"
+msgstr "Kaynak kodu"

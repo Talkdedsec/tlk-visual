@@ -4,6 +4,20 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- English interface. The panel, tray menu, file dialogs and status messages are written in
+  English and translated to Turkish; both languages are compiled into the executable.
+- Language setting with English and Türkçe. A first run follows the Windows display language;
+  an explicit choice switches the window immediately and is kept in `config.json`.
+
+### Changed
+
+- Slider readouts use the decimal separator of the chosen language: `1.25` in English,
+  `1,25` in Turkish. Typed values are accepted with either.
+
 ## [0.1.0] — 2026-08-13
 
 First public release.
@@ -38,4 +52,5 @@ First public release.
 - Exclusive fullscreen hands the display pipeline to the game; borderless windowed is the
   reliable mode.
 
+[Unreleased]: https://github.com/Talkdedsec/tlk-visual/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/Talkdedsec/tlk-visual/releases/tag/v0.1.0

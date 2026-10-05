@@ -34,6 +34,11 @@ CI runs exactly these three on every push, so a green local run means a green pi
 - **No dead controls.** A gamma ramp is one curve per channel and cannot mix channels. If a
   feature needs channel mixing it does not belong on this path, and shipping a slider that
   silently does nothing is worse than not having it.
+- **Text is written in English and translated next to it.** Strings in `ui/*.slint` go
+  through `@tr(...)` with their Turkish in `lang/tr/LC_MESSAGES/talkdedsec-visual.po`;
+  strings drawn from Rust go through `i18n::t(...)` with their Turkish in the table in
+  `src/i18n.rs`. The tests fail on a string without a translation and on a translation
+  nothing shows.
 - **Comments explain constraints, not mechanics.** If the code says what it does, let it.
 
 ## Reporting a bug

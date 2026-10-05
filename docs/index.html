@@ -124,7 +124,7 @@
 </header>
 
 <figure class="shot">
-  <img src="screenshot.png" alt="The Talkdedsec Visual panel: preset rail on the left, three control cards in the centre, a live before/after preview underneath, and the profile rail with the transfer curve on the right." data-tr-alt="Talkdedsec Visual paneli: solda preset rayı, ortada üç kontrol kartı, altta canlı önce/sonra önizlemesi, sağda transfer eğrisiyle profil rayı.">
+  <img src="screenshot.png" data-tr-src="screenshot.tr.png" alt="The Talkdedsec Visual panel: preset rail on the left, three control cards in the centre, a live before/after preview underneath, and the profile rail with the transfer curve on the right." data-tr-alt="Talkdedsec Visual paneli: solda preset rayı, ortada üç kontrol kartı, altta canlı önce/sonra önizlemesi, sağda transfer eğrisiyle profil rayı.">
   <figcaption data-tr="Preset küçük resimleri, aynı sahnenin her presetin gerçek eğrisinden geçirilmiş hali — kartta gördüğün, presetin yaptığı şey. Alttaki önizlemede sürüklenebilir bir önce/sonra bölmesi var.">Preset thumbnails are the same scene pushed through each preset's actual curve — the
     card shows you what the preset does. The preview underneath has a draggable before/after split.</figcaption>
 </figure>
@@ -232,13 +232,16 @@ from the Releases page and run it.</span></code></pre>
   const root = document.documentElement;
   const nodes = [...document.querySelectorAll("[data-tr]")];
   const alts = [...document.querySelectorAll("[data-tr-alt]")];
+  const srcs = [...document.querySelectorAll("[data-tr-src]")];
   nodes.forEach((n) => (n.dataset.en = n.innerHTML));
   alts.forEach((n) => (n.dataset.enAlt = n.alt));
+  srcs.forEach((n) => (n.dataset.enSrc = n.getAttribute("src")));
   const toggle = document.querySelector(".lang-toggle");
   const apply = (lang) => {
     root.lang = lang;
     nodes.forEach((n) => (n.innerHTML = lang === "tr" ? n.dataset.tr : n.dataset.en));
     alts.forEach((n) => (n.alt = lang === "tr" ? n.dataset.trAlt : n.dataset.enAlt));
+    srcs.forEach((n) => n.setAttribute("src", lang === "tr" ? n.dataset.trSrc : n.dataset.enSrc));
     toggle.textContent = lang === "tr" ? "EN" : "TR";
     toggle.lang = lang === "tr" ? "en" : "tr";
     toggle.setAttribute("aria-label", lang === "tr" ? "Switch to English" : "Türkçeye geç");

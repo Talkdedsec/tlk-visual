@@ -186,7 +186,7 @@ component ControlCard inherits Card {
 
             GhostButton {
                 y: (parent.height - self.height) / 2;
-                text: "Bloğu sıfırla";
+                text: @tr("Reset block");
                 width: 112px;
                 horizontal-stretch: 0;
                 clicked => {
@@ -315,16 +315,16 @@ export component MainWindow inherits Window {
     in-out property <float> temperature: 0;
     in-out property <float> night-vision: 0;
 
-    in property <string> brightness-text: "+0,00";
-    in property <string> contrast-text: "1,00";
-    in property <string> gamma-text: "1,00";
-    in property <string> temperature-text: "+0,00";
-    in property <string> night-vision-text: "0,00";
+    in property <string> brightness-text: "+0.00";
+    in property <string> contrast-text: "1.00";
+    in property <string> gamma-text: "1.00";
+    in property <string> temperature-text: "+0.00";
+    in property <string> night-vision-text: "0.00";
 
     in property <bool> engine-active: false;
     in property <bool> comparing: false;
-    in property <string> status-text: "Hazır.";
-    in property <string> status-detail: "Ekran dokunulmadı.";
+    in property <string> status-text: @tr("Ready.");
+    in property <string> status-detail: @tr("Display untouched.");
     in property <string> matrix-text: "";
     in-out property <bool> auto-apply: true;
 
@@ -342,6 +342,7 @@ export component MainWindow inherits Window {
     in property <bool> tray-on-close: true;
     in property <[string]> hotkeys;
     in property <int> hotkey-index: 3;
+    in property <string> language: "en";
     in property <string> version: "0.1.0";
 
     callback changed(string, float);
@@ -363,6 +364,7 @@ export component MainWindow inherits Window {
     callback set-autostart(bool);
     callback set-tray-close(bool);
     callback set-hotkey(int);
+    callback set-language(string);
     callback move-window(length, length);
     callback resize-window(int, length, length);
     callback minimize();
@@ -462,7 +464,7 @@ export component MainWindow inherits Window {
                         }
 
                         Text {
-                            text: root.engine-active ? "AKTİF" : "BOŞTA";
+                            text: root.engine-active ? @tr("ACTIVE") : @tr("IDLE");
                             color: root.engine-active ? Theme.accent : Theme.text-dim;
                             font-size: 11px;
                             font-weight: 700;
@@ -574,11 +576,11 @@ export component MainWindow inherits Window {
                         spacing: 7px;
 
                         Kicker {
-                            text: "PRESETLER";
+                            text: @tr("PRESETS");
                         }
 
                         SectionTitle {
-                            text: "Hazır görünümler";
+                            text: @tr("Ready-made looks");
                         }
 
                         Rectangle {
@@ -599,7 +601,7 @@ export component MainWindow inherits Window {
                                 spacing: 8px;
 
                                 Text {
-                                    text: "Özel";
+                                    text: @tr("Custom");
                                     color: root.selected-preset == -1 ? Theme.text : Theme.text-dim;
                                     font-size: 13px;
                                     font-weight: 600;
@@ -715,7 +717,7 @@ export component MainWindow inherits Window {
                         Divider { }
 
                         Kicker {
-                            text: "PROFİLLERİM";
+                            text: @tr("MY PROFILES");
                         }
 
                         if root.profiles.length == 0: Rectangle {
@@ -735,14 +737,14 @@ export component MainWindow inherits Window {
                                 }
 
                                 Text {
-                                    text: "Henüz profil yok";
+                                    text: @tr("No profiles yet");
                                     color: Theme.text-dim;
                                     font-size: 11px;
                                     horizontal-alignment: center;
                                 }
 
                                 Text {
-                                    text: "Sağdaki panelden kaydet.";
+                                    text: @tr("Save one from the panel on the right.");
                                     color: Theme.text-faint;
                                     font-size: 10px;
                                     horizontal-alignment: center;
@@ -816,19 +818,19 @@ export component MainWindow inherits Window {
                         spacing: 5px;
 
                         Kicker {
-                            text: "AÇIK KAYNAK";
+                            text: @tr("OPEN SOURCE");
                             color: Theme.purple;
                         }
 
                         Text {
-                            text: "Kaynak kodu açık";
+                            text: @tr("The source code is open");
                             color: Theme.text;
                             font-size: 14px;
                             font-weight: 700;
                         }
 
                         Text {
-                            text: "GPL-3.0 · katkıya açık";
+                            text: @tr("GPL-3.0 · contributions welcome");
                             color: Theme.text-faint;
                             font-size: 10px;
                             wrap: word-wrap;
@@ -846,7 +848,7 @@ export component MainWindow inherits Window {
                             animate background { duration: 120ms; }
 
                             Text {
-                                text: "GitHub'da aç";
+                                text: @tr("Open on GitHub");
                                 color: #ffffff;
                                 font-size: 11px;
                                 font-weight: 700;
@@ -871,8 +873,8 @@ export component MainWindow inherits Window {
                 spacing: 10px;
 
                 ControlCard {
-                    kicker: "TEMEL";
-                    title: "Işık & Ton";
+                    kicker: @tr("BASICS");
+                    title: @tr("Light & Tone");
                     glyph: "sun";
                     vertical-stretch: 0;
                     reset-block => {
@@ -880,8 +882,8 @@ export component MainWindow inherits Window {
                     }
 
                     ControlRow {
-                        label: "Parlaklık";
-                        caption: "siyah seviyesini kaldırır";
+                        label: @tr("Brightness");
+                        caption: @tr("lifts the black level");
                         minimum: -0.5;
                         maximum: 0.5;
                         neutral: 0;
@@ -901,8 +903,8 @@ export component MainWindow inherits Window {
                     }
 
                     ControlRow {
-                        label: "Kontrast";
-                        caption: "gölge–ışık ayrımı";
+                        label: @tr("Contrast");
+                        caption: @tr("shadow–highlight separation");
                         minimum: 0.5;
                         maximum: 2.0;
                         neutral: 1.0;
@@ -923,8 +925,8 @@ export component MainWindow inherits Window {
                 }
 
                 ControlCard {
-                    kicker: "RENK";
-                    title: "Gama & Sıcaklık";
+                    kicker: @tr("COLOUR");
+                    title: @tr("Gamma & Temperature");
                     glyph: "color";
                     glyph-color: Theme.magenta;
                     vertical-stretch: 0;
@@ -933,8 +935,8 @@ export component MainWindow inherits Window {
                     }
 
                     ControlRow {
-                        label: "Gama";
-                        caption: "orta tonların ağırlığı";
+                        label: @tr("Gamma");
+                        caption: @tr("weight of the midtones");
                         minimum: 0.5;
                         maximum: 2.2;
                         neutral: 1.0;
@@ -954,8 +956,8 @@ export component MainWindow inherits Window {
                     }
 
                     ControlRow {
-                        label: "Renk Sıcaklığı";
-                        caption: "soğuktan sıcağa";
+                        label: @tr("Colour Temperature");
+                        caption: @tr("cool to warm");
                         minimum: -1.0;
                         maximum: 1.0;
                         neutral: 0;
@@ -976,8 +978,8 @@ export component MainWindow inherits Window {
                 }
 
                 ControlCard {
-                    kicker: "GÖRÜŞ";
-                    title: "Gece Görüşü";
+                    kicker: @tr("VISION");
+                    title: @tr("Night Vision");
                     glyph: "moon";
                     glyph-color: #56d66c;
                     vertical-stretch: 0;
@@ -986,8 +988,8 @@ export component MainWindow inherits Window {
                     }
 
                     ControlRow {
-                        label: "Gece Görüşü";
-                        caption: "karanlıkta detay ayırır";
+                        label: @tr("Night Vision");
+                        caption: @tr("separates detail in the dark");
                         minimum: 0.0;
                         maximum: 1.0;
                         neutral: 0;
@@ -1025,11 +1027,11 @@ export component MainWindow inherits Window {
                                 horizontal-stretch: 1;
 
                                 Kicker {
-                                    text: "CANLI ÖNİZLEME";
+                                    text: @tr("LIVE PREVIEW");
                                 }
 
                                 Text {
-                                    text: "Ayarların ekrana vurmadan önce";
+                                    text: @tr("Your settings before they reach the screen");
                                     color: Theme.text;
                                     font-size: 14px;
                                     font-weight: 700;
@@ -1048,7 +1050,7 @@ export component MainWindow inherits Window {
                                 animate background { duration: 90ms; }
 
                                 Text {
-                                    text: root.comparing ? "orijinal görünüyor" : "basılı tut: orijinal";
+                                    text: root.comparing ? @tr("showing the original") : @tr("hold to compare");
                                     color: root.comparing ? #0a0a0b : Theme.text-dim;
                                     font-size: 11px;
                                     font-weight: 600;
@@ -1131,7 +1133,7 @@ export component MainWindow inherits Window {
                                 background: #000000cc;
 
                                 Text {
-                                    text: "ÖNCE";
+                                    text: @tr("BEFORE");
                                     color: Theme.text-dim;
                                     font-size: 10px;
                                     font-weight: 700;
@@ -1150,7 +1152,7 @@ export component MainWindow inherits Window {
                                 background: #000000cc;
 
                                 Text {
-                                    text: "SONRA";
+                                    text: @tr("AFTER");
                                     color: Theme.accent;
                                     font-size: 10px;
                                     font-weight: 700;
@@ -1192,7 +1194,7 @@ export component MainWindow inherits Window {
                             horizontal-stretch: 1;
 
                             Kicker {
-                                text: "DURUM";
+                                text: @tr("STATUS");
                             }
 
                             Text {
@@ -1205,7 +1207,7 @@ export component MainWindow inherits Window {
                         }
 
                         Text {
-                            text: "OTOMATİK UYGULA";
+                            text: @tr("AUTO-APPLY");
                             color: Theme.text-dim;
                             font-size: 11px;
                             font-weight: 700;
@@ -1225,7 +1227,7 @@ export component MainWindow inherits Window {
 
                         GhostButton {
                             y: (parent.height - self.height) / 2;
-                            text: "Sıfırla";
+                            text: @tr("Reset");
                             width: 112px;
                             horizontal-stretch: 0;
                             clicked => {
@@ -1260,18 +1262,18 @@ export component MainWindow inherits Window {
                             }
 
                             Kicker {
-                                text: "KAYITLI PROFİL";
+                                text: @tr("SAVED PROFILE");
                                 vertical-alignment: center;
                                 horizontal-stretch: 1;
                             }
                         }
 
                         SectionTitle {
-                            text: "Profil oluştur";
+                            text: @tr("Create a profile");
                         }
 
                         Text {
-                            text: "Beş sliderın anlık konumunu isimlendirip saklar.";
+                            text: @tr("Saves the five sliders under a name.");
                             color: Theme.text-faint;
                             font-size: 11px;
                             wrap: word-wrap;
@@ -1287,7 +1289,7 @@ export component MainWindow inherits Window {
 
                             if root.profile-name == "": Text {
                                 x: 13px;
-                                text: "Profil adı girin";
+                                text: @tr("Profile name");
                                 color: Theme.text-faint;
                                 font-size: 12px;
                                 vertical-alignment: center;
@@ -1312,7 +1314,7 @@ export component MainWindow inherits Window {
                         }
 
                         AccentButton {
-                            text: "Profili kaydet";
+                            text: @tr("Save profile");
                             clicked => {
                                 root.save-profile();
                             }
@@ -1328,15 +1330,15 @@ export component MainWindow inherits Window {
                         spacing: 11px;
 
                         Kicker {
-                            text: "MOTOR";
+                            text: @tr("ENGINE");
                         }
 
                         SectionTitle {
-                            text: "Nasıl çalışıyor";
+                            text: @tr("How it works");
                         }
 
                         Text {
-                            text: "Ekran kartının gama tablosu doğrudan yeniden yazılır. Oyuna değil panele çalışır — her oyunda ve her uygulamada geçerlidir.";
+                            text: @tr("The display adapter's gamma ramp is rewritten directly. It works on the panel, not the game — so it applies to every game and every app.");
                             color: Theme.text-dim;
                             font-size: 11px;
                             wrap: word-wrap;
@@ -1345,7 +1347,7 @@ export component MainWindow inherits Window {
                         Divider { }
 
                         Text {
-                            text: "• Oyun dosyası değiştirilmez\n• Sürece enjeksiyon yok\n• Yönetici yetkisi gerekmez\n• Ölçülebilir FPS kaybı yok";
+                            text: @tr("• No game files are changed\n• No process injection\n• No administrator rights needed\n• No measurable FPS loss");
                             color: Theme.text-faint;
                             font-size: 11px;
                             wrap: word-wrap;
@@ -1354,7 +1356,7 @@ export component MainWindow inherits Window {
                         Divider { }
 
                         Kicker {
-                            text: "TRANSFER EĞRİSİ";
+                            text: @tr("TRANSFER CURVE");
                         }
 
                         Rectangle {
@@ -1410,7 +1412,7 @@ export component MainWindow inherits Window {
                             }
 
                             Text {
-                                text: "İçe aktar";
+                                text: @tr("Import");
                                 color: Theme.text;
                                 font-size: 12px;
                                 vertical-alignment: center;
@@ -1436,7 +1438,7 @@ export component MainWindow inherits Window {
                             }
 
                             Text {
-                                text: "Dışa aktar";
+                                text: @tr("Export");
                                 color: Theme.text;
                                 font-size: 12px;
                                 vertical-alignment: center;
@@ -1463,7 +1465,7 @@ export component MainWindow inherits Window {
             x: (parent.width - self.width) / 2;
             y: (parent.height - self.height) / 2;
             width: 520px;
-            height: 440px;
+            height: 512px;
 
             TouchArea { }
 
@@ -1480,7 +1482,7 @@ export component MainWindow inherits Window {
                         horizontal-stretch: 1;
 
                         Kicker {
-                            text: "AYARLAR";
+                            text: @tr("SETTINGS");
                         }
 
                         Text {
@@ -1518,14 +1520,14 @@ export component MainWindow inherits Window {
                         horizontal-stretch: 1;
 
                         Text {
-                            text: "Windows açılışında başlat";
+                            text: @tr("Start with Windows");
                             color: Theme.text;
                             font-size: 13px;
                             font-weight: 600;
                         }
 
                         Text {
-                            text: "Tepsiye küçültülmüş halde açılır.";
+                            text: @tr("Opens minimised to the tray.");
                             color: Theme.text-faint;
                             font-size: 10px;
                         }
@@ -1550,14 +1552,14 @@ export component MainWindow inherits Window {
                         horizontal-stretch: 1;
 
                         Text {
-                            text: "Kapatınca tepsiye küçült";
+                            text: @tr("Minimise to the tray on close");
                             color: Theme.text;
                             font-size: 13px;
                             font-weight: 600;
                         }
 
                         Text {
-                            text: "Kapalıyken çarpı tuşu programı tamamen kapatır.";
+                            text: @tr("When off, the close button quits the program.");
                             color: Theme.text-faint;
                             font-size: 10px;
                         }
@@ -1579,14 +1581,14 @@ export component MainWindow inherits Window {
                     spacing: 8px;
 
                     Text {
-                        text: "Global kısayol";
+                        text: @tr("Global shortcut");
                         color: Theme.text;
                         font-size: 13px;
                         font-weight: 600;
                     }
 
                     Text {
-                        text: "Oyun içindeyken filtreyi açıp kapatır.";
+                        text: @tr("Turns the filter on and off while you are in a game.");
                         color: Theme.text-faint;
                         font-size: 10px;
                     }
@@ -1621,6 +1623,55 @@ export component MainWindow inherits Window {
                     }
                 }
 
+                Divider { }
+
+                VerticalLayout {
+                    spacing: 8px;
+
+                    Text {
+                        text: @tr("Language");
+                        color: Theme.text;
+                        font-size: 13px;
+                        font-weight: 600;
+                    }
+
+                    Text {
+                        text: @tr("The window, tray menu and messages. Follows Windows until you pick one.");
+                        color: Theme.text-faint;
+                        font-size: 10px;
+                    }
+
+                    HorizontalLayout {
+                        spacing: 7px;
+
+                        // Each language is named in itself, so it stays findable in either language.
+                        for entry in [{ code: "en", name: "English" }, { code: "tr", name: "Türkçe" }]: Rectangle {
+                            height: 38px;
+                            border-radius: 9px;
+                            background: root.language == entry.code ? Theme.accent : (lang-chip.has-hover ? Theme.raised : Theme.panel-alt);
+                            border-width: 1px;
+                            border-color: root.language == entry.code ? Theme.accent : Theme.border;
+                            animate background { duration: 110ms; }
+
+                            Text {
+                                text: entry.name;
+                                color: root.language == entry.code ? #0a0a0b : Theme.text-dim;
+                                font-size: 12px;
+                                font-weight: 700;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+
+                            lang-chip := TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => {
+                                    root.set-language(entry.code);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Rectangle {
                     vertical-stretch: 1;
                 }
@@ -1636,7 +1687,7 @@ export component MainWindow inherits Window {
                         horizontal-stretch: 1;
 
                         Text {
-                            text: "Sürüm " + root.version + " · GPL-3.0";
+                            text: @tr("Version {} · GPL-3.0", root.version);
                             color: Theme.text-dim;
                             font-size: 11px;
                         }
@@ -1650,7 +1701,7 @@ export component MainWindow inherits Window {
 
                     GhostButton {
                         y: (parent.height - self.height) / 2;
-                        text: "Kaynak kodu";
+                        text: @tr("Source code");
                         width: 128px;
                         horizontal-stretch: 0;
                         clicked => {

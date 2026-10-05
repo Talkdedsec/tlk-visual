@@ -38,7 +38,7 @@ bu: düzeltme oyunun içinde değil, ekran hattında oluyor.
 
 ## Panel
 
-<img src="assets/screenshot.png" width="100%" alt="Talkdedsec Visual paneli: preset rayı, üç kontrol kartı, önce/sonra bölmeli canlı önizleme ve profil rayı">
+<img src="assets/screenshot.tr.png" width="100%" alt="Talkdedsec Visual paneli: preset rayı, üç kontrol kartı, önce/sonra bölmeli canlı önizleme ve profil rayı">
 
 Sol rayda presetler duruyor; küçük resimler ekran görüntüsü değil, aynı sahnenin o presetin gerçek
 eğrisinden geçirilmiş hali — kartta gördüğün şey presetin yaptığı şey. Orta sütunda üç kontrol kartı.
@@ -163,6 +163,14 @@ küçültülmüş gelsin diye `--tray` ile ekleniyor, kapatınca değer siliniyo
 
 <br>
 
+## Dil
+
+Panel, tepsi menüsü ve bütün durum mesajları İngilizce ve Türkçe. İlk açılışta Windows'un görüntü
+dilini izliyor; ayarlardan birini seçtiğinde pencere anında değişiyor ve seçim `config.json` dosyasında
+saklanıyor. İki dil de exe'nin içine derleniyor.
+
+<br>
+
 ## Profiller
 
 Anlık slider konumlarını isimlendirdiğinde kaydediliyor. Var olan bir isme kaydetmek üzerine yazıyor,
@@ -200,12 +208,14 @@ Tek gereksinim Rust 1.85 ve üzeri. C++ toolchain adımı yok, Python yok, `node
 | Yol | İçinde ne var |
 |---|---|
 | `src/color.rs` | Transfer eğrisi ve testleri |
+| `src/i18n.rs` | Dil seçimi ve Rust tarafında çizilen metinlerin Türkçesi |
 | `src/engine.rs` | Gama tablosu okuma/yazma, kademeli geri çekilme, çıkışta geri yükleme |
 | `src/preview.rs` | Prosedürel önizleme sahnesi |
 | `src/presets.rs` | Hazır presetler |
 | `src/profiles.rs` | Profil deposu ve JSON içe/dışa aktarma |
 | `src/system.rs` | Tepsi, global kısayol, açılışta başlatma |
 | `ui/` | Slint arayüzü: `main`, `widgets`, `icons`, `theme` |
+| `lang/` | Slint arayüzünün Türkçe kataloğu, derleme sırasında exe'ye gömülüyor |
 
 Önizleme sahnesi çekilmiş değil, üretilmiş: gökyüzü geçişi, ağaç hattı, arazi, gece görüşünün üzerinde
 çalışabileceği bilinçli olarak karanlık bir cep ve on iki kareli kalibrasyon şeridi. Bu depoda kimsenin

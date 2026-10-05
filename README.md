@@ -166,6 +166,14 @@ it comes up minimised; switching it off removes the value.
 
 <br>
 
+## Language
+
+The panel, the tray menu and every status message come in English and Turkish. A first run follows
+the Windows display language; pick one in settings and the window switches on the spot, and the
+choice is kept in `config.json`. Both languages are compiled into the executable.
+
+<br>
+
 ## Profiles
 
 Name the current slider positions and they are saved. Saving under a name that already exists
@@ -203,12 +211,14 @@ Rust 1.85 or newer is the only prerequisite. There is no C++ toolchain step, no 
 | Path | What is in it |
 |---|---|
 | `src/color.rs` | The transfer curve and its tests |
+| `src/i18n.rs` | Language choice and the Turkish for text drawn from Rust |
 | `src/engine.rs` | Gamma ramp I/O, the backoff ladder and restore-on-exit |
 | `src/preview.rs` | The procedural preview scene |
 | `src/presets.rs` | Built-in presets |
 | `src/profiles.rs` | Profile store and JSON import/export |
 | `src/system.rs` | Tray, global hotkey, run-at-startup |
 | `ui/` | Slint interface: `main`, `widgets`, `icons`, `theme` |
+| `lang/` | Turkish catalog for the Slint interface, bundled at build time |
 
 The preview scene is generated, not photographed: sky gradient, treeline, terrain, a deliberately dark
 pocket for night vision to work against, and a twelve-patch calibration strip. Nothing in this

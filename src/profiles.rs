@@ -20,6 +20,8 @@ pub struct Store {
     pub auto_apply: bool,
     pub hotkey: String,
     pub tray_on_close: bool,
+    /// `None` until the user picks one; until then the app follows Windows.
+    pub language: Option<String>,
     pub profiles: Vec<Profile>,
     #[serde(skip)]
     path: Option<PathBuf>,
@@ -32,6 +34,7 @@ impl Default for Store {
             auto_apply: true,
             hotkey: "F9".to_string(),
             tray_on_close: true,
+            language: None,
             profiles: Vec::new(),
             path: None,
         }
@@ -188,6 +191,7 @@ mod tests {
         assert!(store.profiles.is_empty());
         assert!(store.auto_apply);
         assert_eq!(store.hotkey, "F9");
+        assert_eq!(store.language, None);
         assert!(store.last.is_neutral());
     }
 
@@ -198,14 +202,25 @@ mod tests {
         store.last = sample(1.6);
         store.hotkey = "F11".into();
         store.tray_on_close = false;
+        store.language = Some("tr".into());
         assert!(store.upsert("night", sample(0.6)));
 
         let reloaded = store_at(&path);
         assert_eq!(reloaded.hotkey, "F11");
+        assert_eq!(reloaded.language.as_deref(), Some("tr"));
         assert!(!reloaded.tray_on_close || reloaded.profiles.len() == 1);
         assert_eq!(reloaded.profiles.len(), 1);
         assert_eq!(reloaded.profiles[0].name, "night");
         assert!((reloaded.profiles[0].settings.gamma - 0.6).abs() < 1e-6);
+    }
+
+    #[test]
+    fn config_from_before_the_language_setting_still_loads() {
+        let path = scratch("prelanguage");
+        std::fs::write(&path, r#"{"hotkey":"F10","profiles":[]}"#).unwrap();
+        let store = store_at(&path);
+        assert_eq!(store.hotkey, "F10");
+        assert_eq!(store.language, None);
     }
 
     #[test]
