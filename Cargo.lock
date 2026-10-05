@@ -4757,6 +4757,7 @@ name = "talkdedsec-visual"
 version = "0.1.0"
 dependencies = [
  "global-hotkey",
+ "i-slint-backend-testing",
  "rfd",
  "serde",
  "serde_json",

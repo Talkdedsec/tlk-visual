@@ -5,6 +5,7 @@
 
 mod color;
 mod engine;
+mod i18n;
 mod presets;
 mod preview;
 mod profiles;
@@ -16,6 +17,7 @@ use std::time::Duration;
 
 use color::Settings;
 use engine::{Applied, Engine};
+use i18n::{fill, number, t, Lang};
 use preview::Scene;
 use profiles::Store;
 use slint::{ModelRc, VecModel};
@@ -58,7 +60,7 @@ impl App {
 
     fn push(&mut self) -> String {
         if !self.auto_apply {
-            return "Beklemede.".into();
+            return t("Waiting.").into();
         }
         self.force_apply()
     }
@@ -66,56 +68,53 @@ impl App {
     fn force_apply(&mut self) -> String {
         let neutral = self.settings.is_neutral();
         let Some(engine) = self.engine.as_mut() else {
-            return "Ekran sürücüsü gama tablosunu kabul etmiyor.".into();
+            return t("The display driver does not accept a gamma ramp.").into();
         };
         match engine.apply(&self.settings) {
-            Applied::Full if neutral => "Hazır.".into(),
-            Applied::Full => "Uygulandı.".into(),
-            Applied::Limited(f) => format!(
-                "Windows tam gücü reddetti — %{} uygulandı.",
-                (f * 100.0).round() as i32
+            Applied::Full if neutral => t("Ready.").into(),
+            Applied::Full => t("Applied.").into(),
+            Applied::Limited(f) => fill(
+                t("Windows refused full strength — {}% applied."),
+                &[&((f * 100.0).round() as i32)],
             ),
-            Applied::Rejected => "Windows bu ayarı reddetti.".into(),
+            Applied::Rejected => t("Windows refused this setting.").into(),
         }
     }
 
     fn detail(&self) -> String {
         if !self.auto_apply {
-            return "Otomatik uygulama kapalı — ekran dokunulmadı.".into();
+            return t("Auto-apply is off — display untouched.").into();
         }
         let s = self.settings;
         let d = Settings::default();
         let mut parts = Vec::new();
         if (s.brightness - d.brightness).abs() > 1e-4 {
-            parts.push(format!("Parlaklık {}", tr(s.brightness, 2, true)));
+            parts.push(fill(t("Brightness {}"), &[&number(s.brightness, 2, true)]));
         }
         if (s.contrast - d.contrast).abs() > 1e-4 {
-            parts.push(format!("Kontrast {}", tr(s.contrast, 2, false)));
+            parts.push(fill(t("Contrast {}"), &[&number(s.contrast, 2, false)]));
         }
         if (s.gamma - d.gamma).abs() > 1e-4 {
-            parts.push(format!("Gama {}", tr(s.gamma, 2, false)));
+            parts.push(fill(t("Gamma {}"), &[&number(s.gamma, 2, false)]));
         }
         if s.temperature.abs() > 1e-4 {
-            parts.push(format!("Sıcaklık {}", tr(s.temperature, 2, true)));
+            parts.push(fill(
+                t("Temperature {}"),
+                &[&number(s.temperature, 2, true)],
+            ));
         }
         if s.night_vision.abs() > 1e-4 {
-            parts.push(format!("Gece görüşü {}", tr(s.night_vision, 2, false)));
+            parts.push(fill(
+                t("Night vision {}"),
+                &[&number(s.night_vision, 2, false)],
+            ));
         }
         if parts.is_empty() {
-            "Ekran dokunulmadı.".into()
+            t("Display untouched.").into()
         } else {
             parts.join(" · ")
         }
     }
-}
-
-fn tr(value: f32, decimals: usize, signed: bool) -> String {
-    let text = if signed {
-        format!("{value:+.decimals$}")
-    } else {
-        format!("{value:.decimals$}")
-    };
-    text.replace('.', ",")
 }
 
 /// Five points along the transfer curve, which is what a gamma ramp really is.
@@ -142,17 +141,32 @@ fn sync(ui: &MainWindow, app: &App, status: String) {
     ui.set_temperature(s.temperature);
     ui.set_night_vision(s.night_vision);
 
-    ui.set_brightness_text(tr(s.brightness, 2, true).into());
-    ui.set_contrast_text(tr(s.contrast, 2, false).into());
-    ui.set_gamma_text(tr(s.gamma, 2, false).into());
-    ui.set_temperature_text(tr(s.temperature, 2, true).into());
-    ui.set_night_vision_text(tr(s.night_vision, 2, false).into());
+    ui.set_brightness_text(number(s.brightness, 2, true).into());
+    ui.set_contrast_text(number(s.contrast, 2, false).into());
+    ui.set_gamma_text(number(s.gamma, 2, false).into());
+    ui.set_temperature_text(number(s.temperature, 2, true).into());
+    ui.set_night_vision_text(number(s.night_vision, 2, false).into());
 
     ui.set_preview_after(app.scene.render(&s));
     ui.set_matrix_text(curve_readout(&s).into());
     ui.set_engine_active(!s.is_neutral() && app.auto_apply && app.engine.is_some());
     ui.set_status_text(status.into());
     ui.set_status_detail(app.detail().into());
+}
+
+/// Rust-side text and Slint's bundled catalog switch together. Slint only knows
+/// its catalogs once a component exists, so this runs after the window is made.
+fn use_language(ui: &MainWindow, lang: Lang) {
+    i18n::set(lang);
+    let _ = slint::select_bundled_translation(lang.code());
+    ui.set_language(lang.code().into());
+}
+
+/// The tray menu lives outside Slint, so it is relabelled by hand.
+fn label_tray(show: &MenuItem, toggle: &MenuItem, quit: &MenuItem) {
+    show.set_text(t("Show window"));
+    toggle.set_text(t("Turn the filter on or off"));
+    quit.set_text(t("Quit"));
 }
 
 /// ShellExecuteW rather than `cmd /C start`, so no console window ever flashes.
@@ -175,18 +189,26 @@ fn main() -> Result<(), slint::PlatformError> {
     let ui = MainWindow::new()?;
     let app = Rc::new(RefCell::new(App::new()));
 
+    let lang = app
+        .borrow()
+        .store
+        .language
+        .as_deref()
+        .and_then(Lang::from_code)
+        .unwrap_or_else(Lang::system);
+    use_language(&ui, lang);
+
     let startup = match Engine::new() {
         Ok(engine) => {
             app.borrow_mut().engine = Some(engine);
-            "Hazır.".to_string()
+            t("Ready.").to_string()
         }
-        Err(e) => format!("Hata: {e}"),
+        Err(_) => t("The display driver does not accept a gamma ramp.").to_string(),
     };
 
     let thumbs = Scene::thumbnail(160, 92);
-    ui.set_presets(ModelRc::from(Rc::new(VecModel::from(presets::ui_models(
-        &thumbs,
-    )))));
+    let preset_model = Rc::new(VecModel::from(presets::ui_models(&thumbs)));
+    ui.set_presets(ModelRc::from(preset_model.clone()));
 
     let profile_model = Rc::new(VecModel::<slint::SharedString>::default());
     profile_model.set_vec(app.borrow().store.names());
@@ -244,7 +266,7 @@ fn main() -> Result<(), slint::PlatformError> {
             let ui = ui.unwrap();
             let Ok(value) = text.replace(',', ".").trim().parse::<f32>() else {
                 let app = app.borrow();
-                sync(&ui, &app, "Sayı okunamadı.".into());
+                sync(&ui, &app, t("Could not read the number.").into());
                 return;
             };
             let mut app = app.borrow_mut();
@@ -274,7 +296,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 if let Some(engine) = app.engine.as_mut() {
                     engine.reset();
                 }
-                "Orijinal görüntü.".to_string()
+                t("Original image.").to_string()
             } else {
                 app.push()
             };
@@ -318,7 +340,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 engine.reset();
             }
             ui.set_selected_preset(0);
-            sync(&ui, &app, "Sıfırlandı.".into());
+            sync(&ui, &app, t("Back to defaults.").into());
         }
     });
 
@@ -346,7 +368,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 if let Some(engine) = app.engine.as_mut() {
                     engine.reset();
                 }
-                "Beklemede.".into()
+                t("Waiting.").into()
             };
             sync(&ui, &app, status);
         }
@@ -380,9 +402,9 @@ fn main() -> Result<(), slint::PlatformError> {
             let status = if app.store.upsert(&name, settings) {
                 model.set_vec(app.store.names());
                 ui.set_profile_name("".into());
-                format!("\"{}\" kaydedildi.", name.trim())
+                fill(t("\"{}\" saved."), &[&name.trim()])
             } else {
-                "Profil adı boş olamaz.".to_string()
+                t("A profile needs a name.").to_string()
             };
             sync(&ui, &app, status);
         }
@@ -400,7 +422,7 @@ fn main() -> Result<(), slint::PlatformError> {
             app.settings = profile.settings;
             ui.set_selected_preset(presets::index_of(&app.settings));
             app.push();
-            let status = format!("\"{}\" yüklendi.", profile.name);
+            let status = fill(t("\"{}\" loaded."), &[&profile.name]);
             sync(&ui, &app, status);
         }
     });
@@ -420,7 +442,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 .unwrap_or_default();
             if app.store.remove(index as usize) {
                 model.set_vec(app.store.names());
-                sync(&ui, &app, format!("\"{name}\" silindi."));
+                sync(&ui, &app, fill(t("\"{}\" deleted."), &[&name]));
             }
         }
     });
@@ -432,11 +454,11 @@ fn main() -> Result<(), slint::PlatformError> {
             let ui = ui.unwrap();
             let app = app.borrow();
             if app.store.profiles.is_empty() {
-                sync(&ui, &app, "Dışa aktarılacak profil yok.".into());
+                sync(&ui, &app, t("There are no profiles to export.").into());
                 return;
             }
             let Some(path) = rfd::FileDialog::new()
-                .set_title("Profilleri dışa aktar")
+                .set_title(t("Export profiles"))
                 .set_file_name("talkdedsec-visual-profiles.json")
                 .add_filter("JSON", &["json"])
                 .save_file()
@@ -444,8 +466,9 @@ fn main() -> Result<(), slint::PlatformError> {
                 return;
             };
             let status = match app.store.export_to(&path) {
-                Ok(count) => format!("{count} profil dışa aktarıldı."),
-                Err(e) => format!("Dışa aktarma hatası: {e}"),
+                Ok(1) => t("1 profile exported.").to_string(),
+                Ok(count) => fill(t("{} profiles exported."), &[&count]),
+                Err(e) => fill(t("Export failed: {}"), &[&e]),
             };
             sync(&ui, &app, status);
         }
@@ -458,7 +481,7 @@ fn main() -> Result<(), slint::PlatformError> {
         move || {
             let ui = ui.unwrap();
             let Some(path) = rfd::FileDialog::new()
-                .set_title("Profilleri içe aktar")
+                .set_title(t("Import profiles"))
                 .add_filter("JSON", &["json"])
                 .pick_file()
             else {
@@ -468,9 +491,13 @@ fn main() -> Result<(), slint::PlatformError> {
             let status = match app.store.import_from(&path) {
                 Ok(count) => {
                     model.set_vec(app.store.names());
-                    format!("{count} profil içe aktarıldı.")
+                    if count == 1 {
+                        t("1 profile imported.").to_string()
+                    } else {
+                        fill(t("{} profiles imported."), &[&count])
+                    }
                 }
-                Err(e) => format!("İçe aktarma hatası: {e}"),
+                Err(e) => fill(t("Import failed: {}"), &[&e]),
             };
             sync(&ui, &app, status);
         }
@@ -500,12 +527,12 @@ fn main() -> Result<(), slint::PlatformError> {
             let app = app.borrow();
             let status = if applied {
                 if on {
-                    "Windows açılışında başlayacak.".to_string()
+                    t("Will start with Windows.").to_string()
                 } else {
-                    "Otomatik başlatma kapatıldı.".to_string()
+                    t("Start with Windows is off.").to_string()
                 }
             } else {
-                "Kayıt defterine yazılamadı.".to_string()
+                t("Could not write to the registry.").to_string()
             };
             sync(&ui, &app, status);
         }
@@ -621,18 +648,19 @@ fn main() -> Result<(), slint::PlatformError> {
                 app.store.hotkey = (*label).to_string();
                 app.store.save();
                 ui.set_hotkey_index(index);
-                format!("Kısayol {label} olarak ayarlandı.")
+                fill(t("Shortcut set to {}."), &[label])
             } else {
-                format!("{label} başka bir program tarafından kullanılıyor.")
+                fill(t("{} is taken by another program."), &[label])
             };
             sync(&ui, &app, status);
         }
     });
 
     let tray_menu = Menu::new();
-    let tray_show = MenuItem::new("Pencereyi göster", true, None);
-    let tray_toggle = MenuItem::new("Filtreyi aç / kapa", true, None);
-    let tray_quit = MenuItem::new("Çıkış", true, None);
+    let tray_show = MenuItem::new("", true, None);
+    let tray_toggle = MenuItem::new("", true, None);
+    let tray_quit = MenuItem::new("", true, None);
+    label_tray(&tray_show, &tray_toggle, &tray_quit);
     let _ = tray_menu.append_items(&[
         &tray_show,
         &tray_toggle,
@@ -650,6 +678,25 @@ fn main() -> Result<(), slint::PlatformError> {
                 .build()
                 .ok()
         });
+
+    ui.on_set_language({
+        let ui = ui.as_weak();
+        let app = app.clone();
+        let tray = (tray_show.clone(), tray_toggle.clone(), tray_quit.clone());
+        move |code| {
+            let ui = ui.unwrap();
+            let Some(lang) = Lang::from_code(&code) else {
+                return;
+            };
+            use_language(&ui, lang);
+            presets::relabel(&preset_model);
+            label_tray(&tray.0, &tray.1, &tray.2);
+            let mut app = app.borrow_mut();
+            app.store.language = Some(lang.code().to_string());
+            app.store.save();
+            sync(&ui, &app, t("Language changed.").into());
+        }
+    });
 
     let show_id = tray_show.id().clone();
     let toggle_id = tray_toggle.id().clone();
@@ -707,9 +754,43 @@ fn toggle_filter(ui: &MainWindow, app: &Rc<RefCell<App>>) {
         if let Some(engine) = app.engine.as_mut() {
             engine.reset();
         }
-        "Beklemede.".to_string()
+        t("Waiting.").to_string()
     };
     app.remember();
     ui.set_auto_apply(app.auto_apply);
     sync(ui, &app, status);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use slint::Model;
+
+    /// Builds the real window on a headless platform: proves the Turkish catalog is
+    /// compiled in and that Slint, Rust and the preset list switch together.
+    #[test]
+    fn the_window_switches_language() {
+        i_slint_backend_testing::init_no_event_loop();
+        let ui = MainWindow::new().unwrap();
+
+        use_language(&ui, Lang::En);
+        let model = VecModel::from(presets::ui_models(&Scene::thumbnail(16, 9)));
+        assert_eq!(model.row_data(0).unwrap().name, "Clear");
+
+        use_language(&ui, Lang::Tr);
+        presets::relabel(&model);
+        assert_eq!(ui.get_language(), "tr");
+        assert_eq!(ui.get_status_text(), "Hazır.");
+        assert_eq!(ui.get_status_detail(), "Ekran dokunulmadı.");
+        assert_eq!(t("Ready."), "Hazır.");
+        assert_eq!(model.row_data(0).unwrap().name, "Berrak");
+        assert_eq!(model.row_data(0).unwrap().hint, "biraz daha net");
+
+        use_language(&ui, Lang::En);
+        presets::relabel(&model);
+        assert_eq!(ui.get_language(), "en");
+        assert_eq!(ui.get_status_text(), "Ready.");
+        assert_eq!(t("Ready."), "Ready.");
+        assert_eq!(model.row_data(0).unwrap().name, "Clear");
+    }
 }
