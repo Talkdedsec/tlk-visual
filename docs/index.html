@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Talkdedsec Visual — screen colour engine for Windows</title>
+<title data-tr="Talkdedsec Visual — Windows için ekran renk motoru">Talkdedsec Visual — screen colour engine for Windows</title>
 <meta name="description" content="Brightness, contrast, gamma, temperature and night vision written straight to the display gamma ramp. One 9.4 MB exe. No injection, no driver, no admin rights, zero frame cost.">
 <link rel="canonical" href="https://talkdedsec.github.io/tlk-visual/">
 <meta property="og:type" content="website">
@@ -92,59 +92,65 @@
   footer a{color:var(--mute)}
   footer .sep{opacity:.4}
 </style>
+<style>
+  .lang-toggle{position:fixed;top:14px;right:14px;z-index:20;font:600 12px/1 var(--mono,ui-monospace,monospace);
+    letter-spacing:.08em;padding:9px 12px;border-radius:999px;border:1px solid var(--line,#2a2a2a);
+    background:var(--panel,#111);color:var(--ink,#eee);cursor:pointer}
+  .lang-toggle:hover{border-color:var(--accent,#888)}
+</style>
 </head>
 <body>
 <div class="wrap">
 
 <header>
   <div class="eyebrow">Talkdedsec · Windows</div>
-  <h1>Your screen, <em>corrected</em>.</h1>
-  <p class="lede">Five sliders — brightness, contrast, gamma, temperature and night vision —
+  <h1 data-tr="Ekranını &lt;em&gt;düzelt&lt;/em&gt;.">Your screen, <em>corrected</em>.</h1>
+  <p class="lede" data-tr="Beş slider — parlaklık, kontrast, gama, renk sıcaklığı ve gece görüşü — tek bir gama tablosuna derlenip doğrudan ekran kartına yazılıyor. Oyunlar, video, masaüstü: panelin gösterdiği her şey oradan geçiyor.">Five sliders — brightness, contrast, gamma, temperature and night vision —
      compiled into a gamma ramp and written straight to the display adapter. Games, video, the
      desktop: everything the panel shows goes through it.</p>
   <ul class="facts">
-    <li>9.4 MB, one exe</li>
-    <li>no installer</li>
-    <li>no injection</li>
-    <li>no driver</li>
-    <li>no admin rights</li>
-    <li>0 frame cost</li>
+    <li data-tr="9,4 MB, tek exe">9.4 MB, one exe</li>
+    <li data-tr="kurulum yok">no installer</li>
+    <li data-tr="enjeksiyon yok">no injection</li>
+    <li data-tr="sürücü yok">no driver</li>
+    <li data-tr="yönetici yetkisi yok">no admin rights</li>
+    <li data-tr="kare başına 0 maliyet">0 frame cost</li>
   </ul>
   <div class="cta">
-    <a class="btn btn-main" href="https://github.com/Talkdedsec/tlk-visual/releases/latest">Download for Windows</a>
-    <a class="btn btn-ghost" href="https://github.com/Talkdedsec/tlk-visual">Source on GitHub</a>
+    <a class="btn btn-main" href="https://github.com/Talkdedsec/tlk-visual/releases/latest" data-tr="Windows için indir">Download for Windows</a>
+    <a class="btn btn-ghost" href="https://github.com/Talkdedsec/tlk-visual" data-tr="GitHub&#x27;da kaynak kodu">Source on GitHub</a>
     <small>GPL-3.0 · Windows 10 / 11 · x64</small>
   </div>
 </header>
 
 <figure class="shot">
-  <img src="screenshot.png" alt="The Talkdedsec Visual panel: preset rail on the left, three control cards in the centre, a live before/after preview underneath, and the profile rail with the transfer curve on the right.">
-  <figcaption>Preset thumbnails are the same scene pushed through each preset's actual curve — the
+  <img src="screenshot.png" alt="The Talkdedsec Visual panel: preset rail on the left, three control cards in the centre, a live before/after preview underneath, and the profile rail with the transfer curve on the right." data-tr-alt="Talkdedsec Visual paneli: solda preset rayı, ortada üç kontrol kartı, altta canlı önce/sonra önizlemesi, sağda transfer eğrisiyle profil rayı.">
+  <figcaption data-tr="Preset küçük resimleri, aynı sahnenin her presetin gerçek eğrisinden geçirilmiş hali — kartta gördüğün, presetin yaptığı şey. Alttaki önizlemede sürüklenebilir bir önce/sonra bölmesi var.">Preset thumbnails are the same scene pushed through each preset's actual curve — the
     card shows you what the preset does. The preview underneath has a draggable before/after split.</figcaption>
 </figure>
 
 <section>
-  <h2>It is not a game mod</h2>
-  <p>Nothing is copied into a game folder, no process is opened, no library is injected and no driver
+  <h2 data-tr="Bu bir oyun modu değil">It is not a game mod</h2>
+  <p data-tr="Oyun klasörüne hiçbir şey kopyalanmıyor, hiçbir sürece bağlanılmıyor, kütüphane enjekte edilmiyor, sürücü kurulmuyor. Gama tablosu, monitör kalibrasyon profilinin çevirdiği düğmenin aynısı; yönetici yetkisi istememesinin ve kare süresinde tam olarak sıfır maliyeti olmasının sebebi de bu: düzeltme oyunun içinde değil, ekran hattında oluyor.">Nothing is copied into a game folder, no process is opened, no library is injected and no driver
      is installed. The ramp is the same knob a monitor calibration profile turns, which is why it
      needs no administrator rights and costs exactly zero frame time — the correction happens in the
      display pipeline, not in your game.</p>
   <div class="grid">
     <div class="card">
-      <h3>Honest about its limits</h3>
-      <p>Saturation and hue are deliberately absent. A gamma ramp is one curve per channel and cannot
+      <h3 data-tr="Sınırları konusunda dürüst">Honest about its limits</h3>
+      <p data-tr="Doygunluk ve renk tonu bilerek yok. Gama tablosu kanal başına tek bir eğridir ve kanalları karıştıramaz; bu yoldan dürüst bir uygulaması yok. İşe yaramayan bir slider, hiç olmayanından daha kötü.">Saturation and hue are deliberately absent. A gamma ramp is one curve per channel and cannot
          mix channels, so no honest implementation exists on this path. A dead slider is worse than a
          missing one.</p>
     </div>
     <div class="card">
-      <h3>It gives the screen back</h3>
-      <p>Gamma ramps outlive the process that set them. Every display's original ramp is read at
+      <h3 data-tr="Ekranı geri veriyor">It gives the screen back</h3>
+      <p data-tr="Gama tabloları, onları ayarlayan süreç kapandıktan sonra da kalır. Her ekranın orijinal tablosu açılışta okunup çıkışta geri yazılıyor — pencere tepsiye indiğinde ya da efekt kapatıldığında da.">Gamma ramps outlive the process that set them. Every display's original ramp is read at
          startup and put back on exit — also when the window goes to the tray, or the effect is
          switched off.</p>
     </div>
     <div class="card">
-      <h3>It tells you when Windows says no</h3>
-      <p>Windows rejects ramps that stray too far from linear. Rather than fail, the engine walks the
+      <h3 data-tr="Windows reddettiğinde söylüyor">It tells you when Windows says no</h3>
+      <p data-tr="Windows, doğrusaldan çok uzaklaşan tabloları reddeder. Motor hata vermek yerine ayarı kademe kademe düşürüyor — %100, %85, %70 — sürücü birini kabul edene kadar; sonra ayarın ne kadarının uygulanabildiğini durum çubuğunda söylüyor.">Windows rejects ramps that stray too far from linear. Rather than fail, the engine walks the
          setting down — 100%, 85%, 70% — until the driver accepts one, then says in the status bar how
          much survived.</p>
     </div>
@@ -152,36 +158,36 @@
 </section>
 
 <section>
-  <h2>The controls</h2>
+  <h2 data-tr="Kontroller">The controls</h2>
   <table>
-    <thead><tr><th>Control</th><th>Range</th><th>Neutral</th><th>What it does</th></tr></thead>
+    <thead><tr><th data-tr="Kontrol">Control</th><th data-tr="Aralık">Range</th><th data-tr="Nötr">Neutral</th><th data-tr="Ne yapıyor">What it does</th></tr></thead>
     <tbody>
-      <tr><td>Brightness</td><td>−0.35 … +0.35</td><td>0.00</td><td>Shifts the whole curve up or down</td></tr>
-      <tr><td>Contrast</td><td>0.60 … 1.80</td><td>1.00</td><td>Opens the gap between shadow and highlight, pivoting on mid grey</td></tr>
-      <tr><td>Gamma</td><td>0.50 … 2.20</td><td>1.00</td><td>Reweights the midtones while both ends stay pinned</td></tr>
-      <tr><td>Temperature</td><td>−1.00 … +1.00</td><td>0.00</td><td>Warm or cool, by separating red from blue</td></tr>
-      <tr><td>Night vision</td><td>0.00 … 1.00</td><td>0.00</td><td>Lifts shadow detail out of the black without washing out highlights</td></tr>
+      <tr><td data-tr="Parlaklık">Brightness</td><td data-tr="−0,35 … +0,35">−0.35 … +0.35</td><td data-tr="0,00">0.00</td><td data-tr="Tüm eğriyi yukarı ya da aşağı kaydırıyor">Shifts the whole curve up or down</td></tr>
+      <tr><td data-tr="Kontrast">Contrast</td><td data-tr="0,60 … 1,80">0.60 … 1.80</td><td data-tr="1,00">1.00</td><td data-tr="Orta griyi merkez alıp gölge ile ışık arasını açıyor">Opens the gap between shadow and highlight, pivoting on mid grey</td></tr>
+      <tr><td data-tr="Gama">Gamma</td><td data-tr="0,50 … 2,20">0.50 … 2.20</td><td data-tr="1,00">1.00</td><td data-tr="İki uç sabit kalırken orta tonların ağırlığını değiştiriyor">Reweights the midtones while both ends stay pinned</td></tr>
+      <tr><td data-tr="Renk sıcaklığı">Temperature</td><td data-tr="−1,00 … +1,00">−1.00 … +1.00</td><td data-tr="0,00">0.00</td><td data-tr="Kırmızıyı maviden ayırarak sıcak ya da soğuk yapıyor">Warm or cool, by separating red from blue</td></tr>
+      <tr><td data-tr="Gece görüşü">Night vision</td><td data-tr="0,00 … 1,00">0.00 … 1.00</td><td data-tr="0,00">0.00</td><td data-tr="Işıkları soldurmadan gölgedeki ayrıntıyı siyahın içinden çıkarıyor">Lifts shadow detail out of the black without washing out highlights</td></tr>
     </tbody>
   </table>
-  <p class="note">Every value box is editable — type <code>1.35</code>, press <kbd>Enter</kbd>.
+  <p class="note" data-tr="Her değer kutusu düzenlenebilir — &lt;code&gt;1.35&lt;/code&gt; yaz, &lt;kbd&gt;Enter&lt;/kbd&gt;&#x27;a bas. Sliderlar klavyeyle de çalışıyor: &lt;kbd&gt;←&lt;/kbd&gt; &lt;kbd&gt;→&lt;/kbd&gt; aralığın yüzde biri kadar kaydırıyor, &lt;kbd&gt;Home&lt;/kbd&gt; ve &lt;kbd&gt;End&lt;/kbd&gt; uçlara götürüyor.">Every value box is editable — type <code>1.35</code>, press <kbd>Enter</kbd>.
     Sliders take the keyboard too: <kbd>←</kbd> <kbd>→</kbd> move by a hundredth of the range,
     <kbd>Home</kbd> and <kbd>End</kbd> pin the ends.</p>
 </section>
 
 <section>
-  <h2>What happens to a pixel</h2>
-  <p>Each of the 256 input levels is pushed through five stages in a fixed order, producing a
+  <h2 data-tr="Bir piksele ne oluyor">What happens to a pixel</h2>
+  <p data-tr="256 giriş seviyesinin her biri sabit bir sırayla beş aşamadan geçiyor. Sonuç, kanal başına 256 girişlik bir tablo; bu tablo bağlı her ekrana &lt;code&gt;SetDeviceGammaRamp&lt;/code&gt; ile gidiyor.">Each of the 256 input levels is pushed through five stages in a fixed order, producing a
      256-entry table per channel that goes to <code>SetDeviceGammaRamp</code> on every attached
      display.</p>
-  <div class="pipe">night vision → gamma → contrast → brightness → temperature</div>
-  <p class="note">The maths is held down by unit tests, not by hope: the neutral setting must
+  <div class="pipe" data-tr="gece görüşü → gama → kontrast → parlaklık → renk sıcaklığı">night vision → gamma → contrast → brightness → temperature</div>
+  <p class="note" data-tr="Matematiği umut değil birim testleri ayakta tutuyor: nötr ayar birim tabloyu &lt;strong&gt;tam olarak&lt;/strong&gt; üretmeli, her eğri monoton kalmalı, kontrast orta griyi merkez almalı, gama siyaha ve beyaza dokunmamalı, gece görüşü de gölgeleri ışıklardan en az on kat fazla kaldırmalı.">The maths is held down by unit tests, not by hope: the neutral setting must
     reproduce the identity ramp <strong>exactly</strong>, every curve must stay monotonic, contrast
     must pivot on mid grey, gamma must leave black and white untouched, and night vision must lift
     shadows at least ten times more than highlights.</p>
 </section>
 
 <section>
-  <h2>Install</h2>
+  <h2 data-tr="Kurulum">Install</h2>
   <div class="install">
     <div>
       <h3>Scoop</h3>
@@ -189,16 +195,17 @@
 scoop install tlk/tlk-visual</span></code></pre>
     </div>
     <div>
-      <h3>Or just the exe</h3>
-      <pre><code><span class="cmd">Download talkdedsec-visual.exe
+      <h3 data-tr="Ya da sadece exe">Or just the exe</h3>
+      <pre><code><span class="cmd" data-tr="talkdedsec-visual.exe dosyasını
+Releases sayfasından indirip çalıştır.">Download talkdedsec-visual.exe
 from the Releases page and run it.</span></code></pre>
     </div>
   </div>
-  <p class="note" style="border-color:var(--accent)"><strong>SmartScreen will warn you the first
+  <p class="note" style="border-color:var(--accent)" data-tr="&lt;strong&gt;SmartScreen ilk seferde uyaracak.&lt;/strong&gt; Exe henüz kod imzalı değil. Her sürümle bir SHA-256 dosyası geliyor; v0.1.0&#x27;dan sonraki her sürümde ayrıca kendin doğrulayabileceğin bir GitHub build attestation&#x27;ı var:"><strong>SmartScreen will warn you the first
     time.</strong> The binary is not code-signed yet. Every release ships a SHA-256 file, and every
     release after v0.1.0 carries a GitHub build attestation you can check yourself:</p>
   <pre><code><span class="cmd">gh attestation verify talkdedsec-visual.exe --owner Talkdedsec</span></code></pre>
-  <p style="margin-top:14px">Windows 10 or 11, 64-bit. One file — no installer, no .NET, no WebView2,
+  <p style="margin-top:14px" data-tr="Windows 10 ya da 11, 64-bit. Tek dosya — kurulum yok, .NET yok, WebView2 yok, hiçbir çalışma zamanı yok. Ayarlar ve profiller &lt;code&gt;%APPDATA%&lt;/code&gt; altında tek bir dosyada duruyor.">Windows 10 or 11, 64-bit. One file — no installer, no .NET, no WebView2,
      no runtime of any kind. Settings and profiles live in a single file under
      <code>%APPDATA%</code>.</p>
 </section>
@@ -208,13 +215,46 @@ from the Releases page and run it.</span></code></pre>
   <span class="sep">·</span>
   <a href="https://github.com/Talkdedsec/tlk-visual">GitHub</a>
   <span class="sep">·</span>
-  <a href="https://github.com/Talkdedsec/tlk-visual/releases">Releases</a>
+  <a href="https://github.com/Talkdedsec/tlk-visual/releases" data-tr="Sürümler">Releases</a>
   <span class="sep">·</span>
-  <a href="https://github.com/Talkdedsec/tlk-visual/issues">Report a bug</a>
+  <a href="https://github.com/Talkdedsec/tlk-visual/issues" data-tr="Hata bildir">Report a bug</a>
   <span class="sep">·</span>
   <a href="https://talkdedsec.com">talkdedsec.com</a>
 </footer>
 
 </div>
+<button class="lang-toggle" type="button" hidden></button>
+<script>
+// English is the page's source text; each translated element carries its
+// Turkish in data-tr. Turkish browsers get Turkish until the visitor picks.
+(() => {
+  const KEY = "tlk-visual.language";
+  const root = document.documentElement;
+  const nodes = [...document.querySelectorAll("[data-tr]")];
+  const alts = [...document.querySelectorAll("[data-tr-alt]")];
+  nodes.forEach((n) => (n.dataset.en = n.innerHTML));
+  alts.forEach((n) => (n.dataset.enAlt = n.alt));
+  const toggle = document.querySelector(".lang-toggle");
+  const apply = (lang) => {
+    root.lang = lang;
+    nodes.forEach((n) => (n.innerHTML = lang === "tr" ? n.dataset.tr : n.dataset.en));
+    alts.forEach((n) => (n.alt = lang === "tr" ? n.dataset.trAlt : n.dataset.enAlt));
+    toggle.textContent = lang === "tr" ? "EN" : "TR";
+    toggle.lang = lang === "tr" ? "en" : "tr";
+    toggle.setAttribute("aria-label", lang === "tr" ? "Switch to English" : "Türkçeye geç");
+  };
+  let lang = null;
+  try { lang = localStorage.getItem(KEY); } catch {}
+  if (lang !== "en" && lang !== "tr")
+    lang = (navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en";
+  apply(lang);
+  toggle.hidden = false;
+  toggle.addEventListener("click", () => {
+    lang = lang === "tr" ? "en" : "tr";
+    try { localStorage.setItem(KEY, lang); } catch {}
+    apply(lang);
+  });
+})();
+</script>
 </body>
 </html>
