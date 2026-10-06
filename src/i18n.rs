@@ -131,6 +131,28 @@ const TURKISH_TEXT: &[(&str, &str)] = &[
     ("Back to defaults.", "Sıfırlandı."),
     ("Could not read the number.", "Sayı okunamadı."),
     ("Language changed.", "Dil değiştirildi."),
+    (
+        "The display was reset — applied again.",
+        "Ekran sıfırlanmıştı — yeniden uygulandı.",
+    ),
+    (
+        "Another program keeps changing the colours — paused until you change a setting.",
+        "Başka bir program renkleri sürekli değiştiriyor — bir ayarı değiştirene kadar duraklatıldı.",
+    ),
+    // engine figures
+    ("Paused", "Durdu"),
+    ("Off", "Kapalı"),
+    ("{}%", "%{}"),
+    // displays
+    ("Display list updated.", "Ekran listesi güncellendi."),
+    ("Built-in display", "Dahili ekran"),
+    ("Display", "Ekran"),
+    ("{} is included.", "{} dahil edildi."),
+    ("{} is left out.", "{} hariç tutuldu."),
+    (
+        "At least one display has to stay selected.",
+        "En az bir ekran seçili kalmalı.",
+    ),
     // status detail
     (
         "Auto-apply is off — display untouched.",

@@ -142,6 +142,74 @@ mod registry {
 
 pub use registry::{enabled as autostart_enabled, set as set_autostart};
 
+/// One copy at a time. A second launch hands over to the first, which shows its
+/// window, instead of putting a second icon in the tray and a second hand on the
+/// gamma ramp.
+pub enum Instance {
+    First(Summons),
+    Already,
+}
+
+/// Raised by a later launch asking this copy to show itself.
+pub struct Summons(#[cfg(windows)] Option<windows::Win32::Foundation::HANDLE>);
+
+#[cfg(windows)]
+pub fn claim() -> Instance {
+    use windows::core::w;
+    use windows::Win32::Foundation::{CloseHandle, GetLastError, ERROR_ALREADY_EXISTS};
+    use windows::Win32::System::Threading::{CreateEventW, SetEvent};
+    use windows::Win32::UI::WindowsAndMessaging::{AllowSetForegroundWindow, ASFW_ANY};
+
+    // Auto-reset, so each launch is answered exactly once.
+    let Ok(event) =
+        (unsafe { CreateEventW(None, false, false, w!("Local\\TalkdedsecVisual.Show")) })
+    else {
+        return Instance::First(Summons(None));
+    };
+    if unsafe { GetLastError() } != ERROR_ALREADY_EXISTS {
+        return Instance::First(Summons(Some(event)));
+    }
+    unsafe {
+        // This launch came from a click, so it may pass the foreground on.
+        let _ = AllowSetForegroundWindow(ASFW_ANY);
+        let _ = SetEvent(event);
+        let _ = CloseHandle(event);
+    }
+    Instance::Already
+}
+
+#[cfg(not(windows))]
+pub fn claim() -> Instance {
+    Instance::First(Summons())
+}
+
+impl Summons {
+    /// True once for each later launch since the last look.
+    pub fn raised(&self) -> bool {
+        #[cfg(windows)]
+        {
+            use windows::Win32::Foundation::WAIT_OBJECT_0;
+            use windows::Win32::System::Threading::WaitForSingleObject;
+
+            self.0
+                .is_some_and(|event| unsafe { WaitForSingleObject(event, 0) } == WAIT_OBJECT_0)
+        }
+        #[cfg(not(windows))]
+        false
+    }
+}
+
+#[cfg(windows)]
+impl Drop for Summons {
+    fn drop(&mut self) {
+        if let Some(event) = self.0 {
+            unsafe {
+                let _ = windows::Win32::Foundation::CloseHandle(event);
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

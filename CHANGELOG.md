@@ -12,11 +12,52 @@ All notable changes to this project are documented here. The format follows
   English and translated to Turkish; both languages are compiled into the executable.
 - Language setting with English and Türkçe. A first run follows the Windows display language;
   an explicit choice switches the window immediately and is kept in `config.json`.
+- Display selection in settings. Every connected display is listed by the name in its EDID,
+  a laptop panel as *Built-in display*; one left out gets its original ramp back and is not
+  touched again. The choice follows the panel, not the port number, and survives a reboot.
+- Displays plugged in while the program runs are picked up within a second.
+- The effect comes back on its own when something resets the ramp — a game entering exclusive
+  fullscreen, a panel waking from sleep, a resolution change. If something keeps rewriting it,
+  five times in twenty seconds, the engine steps aside on that display and says so; changing any
+  setting takes it back.
+- Only one copy runs. Starting the program again brings the open window forward.
+- The transfer curve is drawn: one line while the channels agree, red, green and blue once
+  temperature separates them, against the diagonal of an untouched display.
+- Two live figures under the curve: the strength Windows let through, amber when it clamped or the
+  engine stepped aside, and how many displays the effect is on.
+- The mouse wheel steps a slider; a double-click puts it back on neutral.
+- The global shortcut is shown next to the auto-apply switch it flips.
+- The profile matching the sliders is highlighted.
+- Screen reader and UI Automation names and roles for every control: sliders with value, range and
+  stepping, switches with their state, icon buttons with what they do.
+- <kbd>Esc</kbd> closes the settings.
 
 ### Changed
 
 - Slider readouts use the decimal separator of the chosen language: `1.25` in English,
   `1,25` in Turkish. Typed values are accepted with either.
+- Settings are written within a second of a change rather than only on exit, so shutting Windows
+  down with the window in the tray keeps them.
+- The engine writes only to the displays it found by name and restores only the ones it changed.
+- Deleting a profile takes two clicks; the first turns the bin into *Delete?*.
+- The settings dialog is as tall as what it holds instead of a fixed height.
+- The engine card shows the curve and figures in place of the static explanation, which lives in
+  the README and on the site.
+- Below 760 pixels of height the live preview and the source-code card step aside.
+- New screenshots.
+
+### Fixed
+
+- A ramp left on screen by a run that died before restoring it was taken for the original at the
+  next start and restored forever after. It is now recognised and cleared.
+- A `config.json` saved with a byte order mark — Notepad, PowerShell 5 — was read as empty, and the
+  next save replaced every profile with defaults. The mark is now ignored, and a config that still
+  cannot be read is copied to `config.json.unreadable` before anything is written over it.
+- The brightness and contrast sliders ran past the range the engine accepts, so the knob snapped
+  back from both ends. The engine's own limits now set every slider's range.
+- With more than three or four profiles the left rail outgrew the window and pushed the status bar
+  and the import and export buttons off screen. The profile list now scrolls.
+- At the minimum window height the layout overflowed even with no profiles at all.
 
 ## [0.1.0] — 2026-08-13
 

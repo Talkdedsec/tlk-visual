@@ -27,10 +27,26 @@ export component TdsSlider inherits Rectangle {
     in property <float> maximum: 1;
     in property <float> neutral: 0;
     in property <brush> fill-brush: Theme.accent;
+    in property <string> label;
     in-out property <float> value: 0;
     callback changed(float);
 
     height: 24px;
+    accessible-role: slider;
+    accessible-label: root.label;
+    accessible-value: root.value;
+    accessible-value-minimum: root.minimum;
+    accessible-value-maximum: root.maximum;
+    accessible-value-step: root.span / 100;
+    accessible-action-increment => {
+        root.nudge(1);
+    }
+    accessible-action-decrement => {
+        root.nudge(-1);
+    }
+    accessible-action-set-value(text) => {
+        root.jump(text.to-float());
+    }
     property <length> knob: 13px;
     property <float> span: Math.max(0.000001, root.maximum - root.minimum);
     property <float> ratio: Math.min(1, Math.max(0, (root.value - root.minimum) / root.span));
@@ -108,6 +124,22 @@ export component TdsSlider inherits Rectangle {
                 root.seek(self.mouse-x);
             }
         }
+        // Double-click puts the slider back on its neutral tick.
+        double-clicked => {
+            root.jump(root.neutral);
+        }
+        // The wheel moves in the same hundredths as the arrow keys.
+        scroll-event(ev) => {
+            if (ev.delta-y > 0) {
+                root.nudge(1);
+                return accept;
+            }
+            if (ev.delta-y < 0) {
+                root.nudge(-1);
+                return accept;
+            }
+            reject
+        }
     }
 
     keys := FocusScope {
@@ -137,6 +169,7 @@ export component TdsSlider inherits Rectangle {
 
 export component ValueBox inherits Rectangle {
     in property <string> text;
+    in property <string> label;
     in property <bool> changed: false;
     callback committed(string);
 
@@ -153,6 +186,7 @@ export component ValueBox inherits Rectangle {
     field := TextInput {
         width: 100%;
         height: 100%;
+        accessible-label: root.label;
         text: root.text;
         color: root.changed ? Theme.accent : Theme.text;
         font-size: 12px;
@@ -168,10 +202,16 @@ export component ValueBox inherits Rectangle {
 }
 
 export component ResetDot inherits Rectangle {
+    in property <string> label;
     callback clicked();
     width: 32px;
     height: 32px;
     border-radius: 16px;
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-action-default => {
+        root.clicked();
+    }
     background: touch.has-hover ? Theme.raised : transparent;
     border-width: 1px;
     border-color: touch.has-hover ? Theme.accent.transparentize(0.6) : Theme.border;
@@ -201,10 +241,17 @@ export component ResetDot inherits Rectangle {
 
 export component GhostButton inherits Rectangle {
     in property <string> text;
+    /// What a screen reader says; the visible text unless the button draws its own.
+    in property <string> label: root.text;
     in property <length> text-size: 12px;
     callback clicked();
 
     height: 36px;
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-action-default => {
+        root.clicked();
+    }
     border-radius: Theme.radius-sm;
     background: touch.has-hover ? Theme.raised : Theme.panel-alt;
     border-width: 1px;
@@ -234,6 +281,11 @@ export component AccentButton inherits Rectangle {
     callback clicked();
 
     height: 38px;
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-action-default => {
+        root.clicked();
+    }
     border-radius: Theme.radius-sm;
     background: touch.pressed ? Theme.accent-deep : Theme.accent;
 
@@ -257,10 +309,17 @@ export component AccentButton inherits Rectangle {
 
 export component IconButton inherits Rectangle {
     out property <bool> hovered: touch.has-hover;
+    /// An icon has no text of its own, so say what it does.
+    in property <string> label;
     callback clicked();
 
     width: 40px;
     height: 40px;
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-action-default => {
+        root.clicked();
+    }
     border-radius: Theme.radius-sm;
     background: touch.has-hover ? Theme.raised : Theme.panel;
     border-width: 1px;
@@ -279,13 +338,26 @@ export component IconButton inherits Rectangle {
 
 export component Toggle inherits Rectangle {
     in-out property <bool> checked: true;
+    in property <string> label;
     callback toggled(bool);
+
+    function flip() {
+        root.checked = !root.checked;
+        root.toggled(root.checked);
+    }
 
     width: 52px;
     height: 28px;
     border-radius: 14px;
     background: root.checked ? Theme.accent : Theme.track;
     animate background { duration: 140ms; }
+    accessible-role: checkbox;
+    accessible-label: root.label;
+    accessible-checkable: true;
+    accessible-checked: root.checked;
+    accessible-action-default => {
+        root.flip();
+    }
 
     Rectangle {
         x: root.checked ? parent.width - self.width - 3px : 3px;
@@ -300,8 +372,33 @@ export component Toggle inherits Rectangle {
     TouchArea {
         mouse-cursor: pointer;
         clicked => {
-            root.checked = !root.checked;
-            root.toggled(root.checked);
+            root.flip();
+        }
+    }
+}
+
+/// A keyboard key drawn as a key, for the shortcut hint.
+export component KeyCap inherits Rectangle {
+    in property <string> text;
+    height: 22px;
+    min-width: 30px;
+    border-radius: 6px;
+    background: Theme.panel-alt;
+    border-width: 1px;
+    border-color: Theme.border-hover;
+
+    HorizontalLayout {
+        padding-left: 7px;
+        padding-right: 7px;
+
+        Text {
+            text: root.text;
+            color: Theme.text-dim;
+            font-size: 10px;
+            font-weight: 700;
+            font-family: "Consolas";
+            horizontal-alignment: center;
+            vertical-alignment: center;
         }
     }
 }

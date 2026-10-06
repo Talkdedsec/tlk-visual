@@ -22,6 +22,8 @@ pub struct Store {
     pub tray_on_close: bool,
     /// `None` until the user picks one; until then the app follows Windows.
     pub language: Option<String>,
+    /// Displays the effect stays off, by the id Windows keeps for each panel.
+    pub excluded_displays: Vec<String>,
     pub profiles: Vec<Profile>,
     #[serde(skip)]
     path: Option<PathBuf>,
@@ -35,6 +37,7 @@ impl Default for Store {
             hotkey: "F9".to_string(),
             tray_on_close: true,
             language: None,
+            excluded_displays: Vec::new(),
             profiles: Vec::new(),
             path: None,
         }
@@ -51,9 +54,18 @@ impl Store {
 
     pub fn load_from(path: impl Into<PathBuf>) -> Self {
         let path = path.into();
-        let mut store = std::fs::read_to_string(&path)
-            .ok()
-            .and_then(|text| serde_json::from_str::<Self>(&text).ok())
+        let text = std::fs::read_to_string(&path).ok();
+        // Notepad and PowerShell 5 write UTF-8 with a byte order mark; serde does not take it.
+        let parsed = text.as_deref().and_then(|text| {
+            serde_json::from_str::<Self>(text.trim_start_matches('\u{feff}')).ok()
+        });
+        if parsed.is_none() {
+            if let Some(text) = text.filter(|t| !t.trim().is_empty()) {
+                // The next save writes defaults over this file; keep what the user had.
+                let _ = std::fs::write(unreadable_copy(&path), text);
+            }
+        }
+        let mut store = parsed
             .map(|mut store| {
                 store.last = store.last.clamped();
                 for profile in &mut store.profiles {
@@ -146,6 +158,13 @@ impl Store {
     }
 }
 
+/// Where a config that could not be read is kept: `config.json.unreadable`.
+fn unreadable_copy(path: &Path) -> PathBuf {
+    let mut name = path.file_name().unwrap_or_default().to_os_string();
+    name.push(".unreadable");
+    path.with_file_name(name)
+}
+
 /// `TALKDEDSEC_VISUAL_CONFIG` overrides the location, which is what makes a
 /// portable install (and these tests) possible.
 fn config_path() -> Option<PathBuf> {
@@ -192,6 +211,7 @@ mod tests {
         assert!(store.auto_apply);
         assert_eq!(store.hotkey, "F9");
         assert_eq!(store.language, None);
+        assert!(store.excluded_displays.is_empty());
         assert!(store.last.is_neutral());
     }
 
@@ -203,11 +223,13 @@ mod tests {
         store.hotkey = "F11".into();
         store.tray_on_close = false;
         store.language = Some("tr".into());
+        store.excluded_displays = vec![r"\\?\DISPLAY#TV#1".into()];
         assert!(store.upsert("night", sample(0.6)));
 
         let reloaded = store_at(&path);
         assert_eq!(reloaded.hotkey, "F11");
         assert_eq!(reloaded.language.as_deref(), Some("tr"));
+        assert_eq!(reloaded.excluded_displays, [r"\\?\DISPLAY#TV#1"]);
         assert!(!reloaded.tray_on_close || reloaded.profiles.len() == 1);
         assert_eq!(reloaded.profiles.len(), 1);
         assert_eq!(reloaded.profiles[0].name, "night");
@@ -221,6 +243,7 @@ mod tests {
         let store = store_at(&path);
         assert_eq!(store.hotkey, "F10");
         assert_eq!(store.language, None);
+        assert!(store.excluded_displays.is_empty());
     }
 
     #[test]
@@ -287,12 +310,45 @@ mod tests {
     }
 
     #[test]
-    fn corrupt_file_falls_back_to_defaults() {
+    fn corrupt_file_falls_back_to_defaults_and_is_kept_aside() {
         let path = scratch("corrupt");
+        let aside = unreadable_copy(&path);
+        let _ = std::fs::remove_file(&aside);
         std::fs::write(&path, "{ this is not json").unwrap();
+
         let store = store_at(&path);
         assert!(store.profiles.is_empty());
         assert_eq!(store.hotkey, "F9");
+        assert_eq!(
+            std::fs::read_to_string(&aside).unwrap(),
+            "{ this is not json"
+        );
+        assert!(aside.to_string_lossy().ends_with("corrupt.json.unreadable"));
+    }
+
+    #[test]
+    fn a_byte_order_mark_does_not_cost_the_config() {
+        let path = scratch("bom");
+        let _ = std::fs::remove_file(unreadable_copy(&path));
+        std::fs::write(
+            &path,
+            "\u{feff}{\"hotkey\":\"F10\",\"profiles\":[{\"name\":\"x\",\"settings\":{}}]}",
+        )
+        .unwrap();
+        let store = store_at(&path);
+        assert_eq!(store.hotkey, "F10");
+        assert_eq!(store.profiles.len(), 1);
+        assert!(!unreadable_copy(&path).exists());
+    }
+
+    #[test]
+    fn a_missing_or_empty_file_is_not_kept_aside() {
+        let path = scratch("empty");
+        let _ = std::fs::remove_file(unreadable_copy(&path));
+        store_at(&path);
+        std::fs::write(&path, "").unwrap();
+        store_at(&path);
+        assert!(!unreadable_copy(&path).exists());
     }
 
     #[test]

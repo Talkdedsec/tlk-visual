@@ -2,13 +2,33 @@
 // Copyright (C) 2026 Talkdedsec
 
 import { Theme } from "theme.slint";
-import { Card, TdsSlider, ValueBox, ResetDot, GhostButton, AccentButton, IconButton, Toggle, Logo } from "widgets.slint";
+import { Card, TdsSlider, ValueBox, ResetDot, GhostButton, AccentButton, IconButton, Toggle, Logo, KeyCap } from "widgets.slint";
 import { IconClose, IconMinimize, IconPlay, IconSliders, IconSlidersKnobs, IconSun, IconContrast, IconContrastFill, IconMoon, IconSplit, IconTrash, IconEye, IconImport, IconExport, IconDoc } from "icons.slint";
 
 export struct Preset {
     name: string,
     hint: string,
     thumb: image,
+}
+
+export struct DisplayEntry {
+    name: string,
+    on: bool,
+}
+
+/// Slider ranges. Rust sets them from the engine's own clamps at startup, so a
+/// slider can never reach a value the engine would pull back.
+export global Ranges {
+    in property <float> brightness-min: -0.35;
+    in property <float> brightness-max: 0.35;
+    in property <float> contrast-min: 0.6;
+    in property <float> contrast-max: 1.8;
+    in property <float> gamma-min: 0.5;
+    in property <float> gamma-max: 2.2;
+    in property <float> temperature-min: -1.0;
+    in property <float> temperature-max: 1.0;
+    in property <float> night-vision-min: 0.0;
+    in property <float> night-vision-max: 1.0;
 }
 
 component Kicker inherits Text {
@@ -87,6 +107,7 @@ component ControlRow inherits Rectangle {
             maximum: root.maximum;
             neutral: root.neutral;
             fill-brush: root.fill-brush;
+            label: root.label;
             value: root.value;
             horizontal-stretch: 1;
             changed(v) => {
@@ -97,6 +118,7 @@ component ControlRow inherits Rectangle {
         ResetDot {
             y: (parent.height - self.height) / 2;
             horizontal-stretch: 0;
+            label: @tr("Reset {}", root.label);
             clicked => {
                 root.reset();
             }
@@ -105,6 +127,7 @@ component ControlRow inherits Rectangle {
         ValueBox {
             y: (parent.height - self.height) / 2;
             text: root.display;
+            label: root.label;
             changed: root.touched;
             horizontal-stretch: 0;
             committed(v) => {
@@ -196,6 +219,237 @@ component ControlCard inherits Card {
         }
 
         @children
+    }
+}
+
+/// One saved profile. Deleting takes two clicks: the first turns the bin into a
+/// question, the second answers it; moving away takes the question back.
+component ProfileRow inherits Rectangle {
+    in property <string> name;
+    in property <bool> selected;
+    callback pick();
+    callback remove();
+    property <bool> armed: false;
+
+    height: 38px;
+    border-radius: 9px;
+    background: root.selected ? Theme.raised : (row.has-hover ? Theme.panel : transparent);
+    border-width: 1px;
+    border-color: root.selected ? Theme.accent.transparentize(0.55) : transparent;
+    animate background, border-color { duration: 110ms; }
+    accessible-role: button;
+    accessible-label: root.name;
+    accessible-action-default => {
+        root.pick();
+    }
+
+    row := TouchArea {
+        mouse-cursor: pointer;
+        clicked => {
+            root.armed = false;
+            root.pick();
+        }
+        changed has-hover => {
+            if (!self.has-hover && !bin.has-hover) {
+                root.armed = false;
+            }
+        }
+    }
+
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 5px;
+        spacing: 6px;
+
+        Text {
+            text: root.name;
+            color: root.selected ? Theme.text : Theme.text-dim;
+            font-size: 12px;
+            font-weight: root.selected ? 600 : 400;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+            overflow: elide;
+        }
+
+        Rectangle {
+            y: (parent.height - self.height) / 2;
+            width: root.armed ? 70px : 28px;
+            height: 28px;
+            horizontal-stretch: 0;
+            border-radius: 8px;
+            opacity: row.has-hover || bin.has-hover || root.armed ? 1 : 0;
+            background: root.armed ? #3a1520 : (bin.has-hover ? #2a1218 : transparent);
+            animate width, opacity, background { duration: 110ms; }
+            accessible-role: button;
+            accessible-label: root.armed ? @tr("Delete?") : @tr("Delete profile");
+            accessible-action-default => {
+                bin.press();
+            }
+
+            if !root.armed: IconTrash {
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                size: 15px;
+                tint: bin.has-hover ? #ff6b6b : Theme.text-faint;
+            }
+
+            if root.armed: Text {
+                text: @tr("Delete?");
+                color: #ff6b6b;
+                font-size: 11px;
+                font-weight: 700;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+
+            bin := TouchArea {
+                mouse-cursor: pointer;
+                function press() {
+                    if (root.armed) {
+                        root.armed = false;
+                        root.remove();
+                    } else {
+                        root.armed = true;
+                    }
+                }
+                clicked => {
+                    self.press();
+                }
+                changed has-hover => {
+                    if (!self.has-hover && !row.has-hover) {
+                        root.armed = false;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// The transfer curve as a picture: input along the bottom, output up the side.
+/// One line while the channels agree, red, green and blue once they part.
+component CurveGraph inherits Rectangle {
+    in property <string> red;
+    in property <string> green;
+    in property <string> blue;
+    in property <bool> mono: true;
+
+    border-radius: 9px;
+    background: #08080a;
+    border-width: 1px;
+    border-color: Theme.border;
+    clip: true;
+    accessible-role: image;
+    accessible-label: @tr("Transfer curve");
+
+    Rectangle {
+        x: 10px;
+        y: 10px;
+        width: parent.width - 20px;
+        height: parent.height - 20px;
+
+        for q in [0.25, 0.5, 0.75]: Rectangle {
+            x: parent.width * q;
+            width: 1px;
+            height: parent.height;
+            background: Theme.border-soft;
+        }
+
+        for q in [0.25, 0.5, 0.75]: Rectangle {
+            y: parent.height * q;
+            width: parent.width;
+            height: 1px;
+            background: Theme.border-soft;
+        }
+
+        // where every level would stay without the effect
+        Path {
+            width: 100%;
+            height: 100%;
+            viewbox-width: 255;
+            viewbox-height: 255;
+            commands: "M0 255 L255 0";
+            stroke: Theme.text-faint;
+            stroke-width: 1px;
+            fill: transparent;
+            opacity: 0.6;
+        }
+
+        if !root.mono: Path {
+            width: 100%;
+            height: 100%;
+            viewbox-width: 255;
+            viewbox-height: 255;
+            commands: root.blue;
+            stroke: #5b8cff;
+            stroke-width: 2px;
+            fill: transparent;
+        }
+
+        if !root.mono: Path {
+            width: 100%;
+            height: 100%;
+            viewbox-width: 255;
+            viewbox-height: 255;
+            commands: root.green;
+            stroke: #5fd97a;
+            stroke-width: 2px;
+            fill: transparent;
+        }
+
+        if !root.mono: Path {
+            width: 100%;
+            height: 100%;
+            viewbox-width: 255;
+            viewbox-height: 255;
+            commands: root.red;
+            stroke: #ff6161;
+            stroke-width: 2px;
+            fill: transparent;
+        }
+
+        if root.mono: Path {
+            width: 100%;
+            height: 100%;
+            viewbox-width: 255;
+            viewbox-height: 255;
+            commands: root.red;
+            stroke: Theme.accent;
+            stroke-width: 2px;
+            fill: transparent;
+        }
+    }
+}
+
+/// A labelled figure, for what the engine is doing right now.
+component Stat inherits Rectangle {
+    in property <string> label;
+    in property <string> value;
+    in property <bool> warn: false;
+
+    height: 54px;
+    border-radius: 9px;
+    background: Theme.panel-alt;
+    border-width: 1px;
+    border-color: root.warn ? #ffb14d55 : Theme.border;
+    animate border-color { duration: 160ms; }
+
+    VerticalLayout {
+        padding-left: 12px;
+        padding-right: 10px;
+        alignment: center;
+        spacing: 3px;
+
+        Kicker {
+            text: root.label;
+        }
+
+        Text {
+            text: root.value;
+            color: root.warn ? #ffb14d : Theme.text;
+            font-size: 16px;
+            font-weight: 700;
+            overflow: elide;
+        }
     }
 }
 
@@ -325,8 +579,15 @@ export component MainWindow inherits Window {
     in property <bool> comparing: false;
     in property <string> status-text: @tr("Ready.");
     in property <string> status-detail: @tr("Display untouched.");
-    in property <string> matrix-text: "";
     in-out property <bool> auto-apply: true;
+
+    in property <string> curve-red: "M0 255 L255 0";
+    in property <string> curve-green: "M0 255 L255 0";
+    in property <string> curve-blue: "M0 255 L255 0";
+    in property <bool> curve-mono: true;
+    in property <string> strength-text: "—";
+    in property <bool> strength-warn: false;
+    in property <string> displays-text: "—";
 
     in property <image> preview-before;
     in property <image> preview-after;
@@ -334,6 +595,7 @@ export component MainWindow inherits Window {
 
     in property <[Preset]> presets;
     in property <[string]> profiles;
+    in property <int> selected-profile: -1;
     in-out property <int> selected-preset: -1;
     in-out property <string> profile-name: "";
 
@@ -342,8 +604,12 @@ export component MainWindow inherits Window {
     in property <bool> tray-on-close: true;
     in property <[string]> hotkeys;
     in property <int> hotkey-index: 3;
+    in property <[DisplayEntry]> displays;
     in property <string> language: "en";
     in property <string> version: "0.1.0";
+    /// Set from Rust when the window is short. Bound to `root.height` here, it
+    /// would feed the layout that decides the height: a binding loop.
+    in property <bool> compact: false;
 
     callback changed(string, float);
     callback committed(string, string);
@@ -364,6 +630,7 @@ export component MainWindow inherits Window {
     callback set-autostart(bool);
     callback set-tray-close(bool);
     callback set-hotkey(int);
+    callback set-display(int, bool);
     callback set-language(string);
     callback move-window(length, length);
     callback resize-window(int, length, length);
@@ -477,6 +744,7 @@ export component MainWindow inherits Window {
                 gear := IconButton {
                     y: (parent.height - self.height) / 2;
                     horizontal-stretch: 0;
+                    label: @tr("Settings");
                     clicked => {
                         root.open-settings();
                     }
@@ -504,6 +772,11 @@ export component MainWindow inherits Window {
                     border-radius: Theme.radius-sm;
                     background: apply-touch.pressed ? Theme.accent-deep : Theme.accent;
                     animate background { duration: 90ms; }
+                    accessible-role: button;
+                    accessible-label: @tr("Apply now");
+                    accessible-action-default => {
+                        root.apply-now();
+                    }
 
                     IconPlay {
                         x: (parent.width - self.width) / 2 + 1px;
@@ -528,6 +801,7 @@ export component MainWindow inherits Window {
                 mini := IconButton {
                     y: (parent.height - self.height) / 2;
                     horizontal-stretch: 0;
+                    label: @tr("Minimise");
                     clicked => {
                         root.minimize();
                     }
@@ -543,6 +817,7 @@ export component MainWindow inherits Window {
                 shut := IconButton {
                     y: (parent.height - self.height) / 2;
                     horizontal-stretch: 0;
+                    label: @tr("Close");
                     clicked => {
                         root.quit();
                     }
@@ -616,6 +891,11 @@ export component MainWindow inherits Window {
                                     horizontal-stretch: 0;
                                     border-radius: 8px;
                                     background: cog.has-hover ? Theme.panel : transparent;
+                                    accessible-role: button;
+                                    accessible-label: @tr("Settings");
+                                    accessible-action-default => {
+                                        root.open-settings();
+                                    }
 
                                     IconSliders {
                                         x: (parent.width - self.width) / 2;
@@ -648,6 +928,12 @@ export component MainWindow inherits Window {
                         for preset[i] in root.presets: Rectangle {
                             height: 50px;
                             border-radius: 11px;
+                            accessible-role: button;
+                            accessible-label: preset.name;
+                            accessible-description: preset.hint;
+                            accessible-action-default => {
+                                root.pick-preset(i);
+                            }
                             background: root.selected-preset == i ? Theme.raised : (prow.has-hover ? Theme.panel : transparent);
                             border-width: 1px;
                             border-color: root.selected-preset == i ? Theme.accent.transparentize(0.55) : transparent;
@@ -752,64 +1038,45 @@ export component MainWindow inherits Window {
                             }
                         }
 
-                        for profile[i] in root.profiles: Rectangle {
-                            height: 38px;
-                            border-radius: 9px;
-                            background: frow.has-hover ? Theme.panel : transparent;
-
-                            HorizontalLayout {
-                                padding-left: 12px;
-                                padding-right: 6px;
-                                spacing: 6px;
-
-                                Text {
-                                    text: profile;
-                                    color: Theme.text-dim;
-                                    font-size: 12px;
-                                    vertical-alignment: center;
-                                    horizontal-stretch: 1;
-                                    overflow: elide;
-                                }
-
-                                if frow.has-hover: Rectangle {
-                                    y: (parent.height - self.height) / 2;
-                                    width: 28px;
-                                    height: 28px;
-                                    horizontal-stretch: 0;
-                                    border-radius: 8px;
-                                    background: del.has-hover ? #3a1520 : transparent;
-
-                                    IconTrash {
-                                        x: (parent.width - self.width) / 2;
-                                        y: (parent.height - self.height) / 2;
-                                        size: 15px;
-                                        tint: del.has-hover ? #ff6b6b : Theme.text-faint;
-                                    }
-
-                                    del := TouchArea {
-                                        mouse-cursor: pointer;
-                                        clicked => {
-                                            root.delete-profile(i);
-                                        }
-                                    }
-                                }
-                            }
-
-                            frow := TouchArea {
-                                mouse-cursor: pointer;
-                                clicked => {
-                                    root.pick-profile(i);
-                                }
-                            }
-                        }
-
+                        // The presets above are fixed; the profiles take what is left and scroll.
                         if root.profiles.length > 0: Rectangle {
                             vertical-stretch: 1;
+                            min-height: 40px;
+
+                            list := Flickable {
+                                width: parent.width;
+                                height: parent.height;
+                                viewport-height: root.profiles.length * 40px;
+
+                                for profile[i] in root.profiles: ProfileRow {
+                                    x: 0;
+                                    y: i * 40px;
+                                    width: list.width - (list.viewport-height > list.height ? 8px : 0px);
+                                    name: profile;
+                                    selected: root.selected-profile == i;
+                                    pick => {
+                                        root.pick-profile(i);
+                                    }
+                                    remove => {
+                                        root.delete-profile(i);
+                                    }
+                                }
+                            }
+
+                            if list.viewport-height > list.height: Rectangle {
+                                x: parent.width - 3px;
+                                width: 3px;
+                                height: Math.max(24px, parent.height * (list.height / list.viewport-height));
+                                y: (parent.height - self.height) * (-list.viewport-y / Math.max(1px, list.viewport-height - list.height));
+                                border-radius: 1.5px;
+                                background: Theme.border-hover;
+                            }
                         }
                     }
                 }
 
-                Card {
+                // A short window needs the room for the presets; the source link stays in settings.
+                if !root.compact: Card {
                     height: 104px;
                     vertical-stretch: 0;
 
@@ -846,6 +1113,11 @@ export component MainWindow inherits Window {
                             border-radius: 9px;
                             background: src.has-hover ? #6a4de0 : Theme.purple;
                             animate background { duration: 120ms; }
+                            accessible-role: button;
+                            accessible-label: @tr("Open on GitHub");
+                            accessible-action-default => {
+                                root.open-source();
+                            }
 
                             Text {
                                 text: @tr("Open on GitHub");
@@ -884,8 +1156,8 @@ export component MainWindow inherits Window {
                     ControlRow {
                         label: @tr("Brightness");
                         caption: @tr("lifts the black level");
-                        minimum: -0.5;
-                        maximum: 0.5;
+                        minimum: Ranges.brightness-min;
+                        maximum: Ranges.brightness-max;
                         neutral: 0;
                         value: root.brightness;
                         display: root.brightness-text;
@@ -905,8 +1177,8 @@ export component MainWindow inherits Window {
                     ControlRow {
                         label: @tr("Contrast");
                         caption: @tr("shadow–highlight separation");
-                        minimum: 0.5;
-                        maximum: 2.0;
+                        minimum: Ranges.contrast-min;
+                        maximum: Ranges.contrast-max;
                         neutral: 1.0;
                         value: root.contrast;
                         display: root.contrast-text;
@@ -937,8 +1209,8 @@ export component MainWindow inherits Window {
                     ControlRow {
                         label: @tr("Gamma");
                         caption: @tr("weight of the midtones");
-                        minimum: 0.5;
-                        maximum: 2.2;
+                        minimum: Ranges.gamma-min;
+                        maximum: Ranges.gamma-max;
                         neutral: 1.0;
                         value: root.gamma;
                         display: root.gamma-text;
@@ -958,8 +1230,8 @@ export component MainWindow inherits Window {
                     ControlRow {
                         label: @tr("Colour Temperature");
                         caption: @tr("cool to warm");
-                        minimum: -1.0;
-                        maximum: 1.0;
+                        minimum: Ranges.temperature-min;
+                        maximum: Ranges.temperature-max;
                         neutral: 0;
                         value: root.temperature;
                         display: root.temperature-text;
@@ -990,8 +1262,8 @@ export component MainWindow inherits Window {
                     ControlRow {
                         label: @tr("Night Vision");
                         caption: @tr("separates detail in the dark");
-                        minimum: 0.0;
-                        maximum: 1.0;
+                        minimum: Ranges.night-vision-min;
+                        maximum: Ranges.night-vision-max;
                         neutral: 0;
                         value: root.night-vision;
                         display: root.night-vision-text;
@@ -1009,8 +1281,14 @@ export component MainWindow inherits Window {
                     }
                 }
 
+                // A short window would squeeze the preview to a sliver; hold-to-compare
+                // on the real screen still works without it.
+                if root.compact: Rectangle {
+                    vertical-stretch: 1;
+                }
+
                 // the reference leaves this space empty; the live preview earns it
-                Card {
+                if !root.compact: Card {
                     vertical-stretch: 1;
 
                     VerticalLayout {
@@ -1048,6 +1326,8 @@ export component MainWindow inherits Window {
                                 border-width: 1px;
                                 border-color: root.comparing ? Theme.accent : Theme.border;
                                 animate background { duration: 90ms; }
+                                accessible-role: button;
+                                accessible-label: @tr("hold to compare");
 
                                 Text {
                                     text: root.comparing ? @tr("showing the original") : @tr("hold to compare");
@@ -1206,6 +1486,13 @@ export component MainWindow inherits Window {
                             }
                         }
 
+                        // The global shortcut flips exactly this toggle, so its key sits next to it.
+                        if root.hotkey-index >= 0: KeyCap {
+                            y: (parent.height - self.height) / 2;
+                            horizontal-stretch: 0;
+                            text: root.hotkeys[root.hotkey-index];
+                        }
+
                         Text {
                             text: @tr("AUTO-APPLY");
                             color: Theme.text-dim;
@@ -1219,6 +1506,7 @@ export component MainWindow inherits Window {
                         Toggle {
                             y: (parent.height - self.height) / 2;
                             checked: root.auto-apply;
+                            label: @tr("Auto-apply");
                             horizontal-stretch: 0;
                             toggled(on) => {
                                 root.toggle-auto(on);
@@ -1299,6 +1587,7 @@ export component MainWindow inherits Window {
                                 x: 13px;
                                 width: parent.width - 26px;
                                 height: 100%;
+                                accessible-label: @tr("Profile name");
                                 text: root.profile-name;
                                 color: Theme.text;
                                 font-size: 12px;
@@ -1334,51 +1623,39 @@ export component MainWindow inherits Window {
                         }
 
                         SectionTitle {
-                            text: @tr("How it works");
+                            text: @tr("Transfer curve");
                         }
 
                         Text {
-                            text: @tr("The display adapter's gamma ramp is rewritten directly. It works on the panel, not the game — so it applies to every game and every app.");
-                            color: Theme.text-dim;
-                            font-size: 11px;
-                            wrap: word-wrap;
-                        }
-
-                        Divider { }
-
-                        Text {
-                            text: @tr("• No game files are changed\n• No process injection\n• No administrator rights needed\n• No measurable FPS loss");
+                            text: @tr("What each input level becomes on screen. The diagonal is the display left alone.");
                             color: Theme.text-faint;
-                            font-size: 11px;
+                            font-size: 10px;
                             wrap: word-wrap;
                         }
 
-                        Divider { }
-
-                        Kicker {
-                            text: @tr("TRANSFER CURVE");
-                        }
-
-                        Rectangle {
-                            height: 78px;
-                            vertical-stretch: 0;
-                            border-radius: 9px;
-                            background: #08080a;
-                            border-width: 1px;
-                            border-color: Theme.border;
-
-                            Text {
-                                x: 12px;
-                                y: (parent.height - self.height) / 2;
-                                text: root.matrix-text;
-                                color: Theme.accent.transparentize(0.15);
-                                font-size: 10px;
-                                font-family: "Consolas";
-                            }
-                        }
-
-                        Rectangle {
+                        CurveGraph {
                             vertical-stretch: 1;
+                            min-height: 80px;
+                            red: root.curve-red;
+                            green: root.curve-green;
+                            blue: root.curve-blue;
+                            mono: root.curve-mono;
+                        }
+
+                        HorizontalLayout {
+                            spacing: 8px;
+                            vertical-stretch: 0;
+
+                            Stat {
+                                label: @tr("STRENGTH");
+                                value: root.strength-text;
+                                warn: root.strength-warn;
+                            }
+
+                            Stat {
+                                label: @tr("DISPLAYS");
+                                value: root.displays-text;
+                            }
                         }
 
                         Text {
@@ -1397,6 +1674,7 @@ export component MainWindow inherits Window {
                     imp := GhostButton {
                         height: 40px;
                         text: "";
+                        label: @tr("Import");
                         clicked => {
                             root.import-profiles();
                         }
@@ -1423,6 +1701,7 @@ export component MainWindow inherits Window {
                     exp := GhostButton {
                         height: 40px;
                         text: "";
+                        label: @tr("Export");
                         clicked => {
                             root.export-profiles();
                         }
@@ -1461,15 +1740,34 @@ export component MainWindow inherits Window {
             }
         }
 
+        // Escape closes the dialog, as it does everywhere else on Windows.
+        FocusScope {
+            width: 0px;
+            height: 0px;
+            init => {
+                self.focus();
+            }
+            key-pressed(event) => {
+                if (event.text == Key.Escape) {
+                    root.close-settings();
+                    return accept;
+                }
+                reject
+            }
+        }
+
         Card {
             x: (parent.width - self.width) / 2;
             y: (parent.height - self.height) / 2;
             width: 520px;
-            height: 512px;
+            // As tall as what it holds, and never taller than the window.
+            height: Math.min(body.preferred-height, parent.height - 24px);
+            accessible-role: groupbox;
+            accessible-label: @tr("SETTINGS");
 
             TouchArea { }
 
-            VerticalLayout {
+            body := VerticalLayout {
                 padding: 22px;
                 spacing: 14px;
 
@@ -1496,6 +1794,7 @@ export component MainWindow inherits Window {
                     close := IconButton {
                         y: (parent.height - self.height) / 2;
                         horizontal-stretch: 0;
+                        label: @tr("Close");
                         clicked => {
                             root.close-settings();
                         }
@@ -1536,6 +1835,7 @@ export component MainWindow inherits Window {
                     Toggle {
                         y: (parent.height - self.height) / 2;
                         checked: root.autostart;
+                        label: @tr("Start with Windows");
                         horizontal-stretch: 0;
                         toggled(on) => {
                             root.set-autostart(on);
@@ -1568,6 +1868,7 @@ export component MainWindow inherits Window {
                     Toggle {
                         y: (parent.height - self.height) / 2;
                         checked: root.tray-on-close;
+                        label: @tr("Minimise to the tray on close");
                         horizontal-stretch: 0;
                         toggled(on) => {
                             root.set-tray-close(on);
@@ -1576,6 +1877,71 @@ export component MainWindow inherits Window {
                 }
 
                 Divider { }
+
+                if root.displays.length > 0: VerticalLayout {
+                    spacing: 8px;
+
+                    Text {
+                        text: @tr("Displays");
+                        color: Theme.text;
+                        font-size: 13px;
+                        font-weight: 600;
+                    }
+
+                    Text {
+                        text: @tr("Only the selected displays are changed. 1 is the main display.");
+                        color: Theme.text-faint;
+                        font-size: 10px;
+                    }
+
+                    HorizontalLayout {
+                        spacing: 7px;
+                        alignment: start;
+
+                        // As wide as a language chip, narrower when more displays have to fit.
+                        for panel[i] in root.displays: Rectangle {
+                            height: 38px;
+                            horizontal-stretch: 1;
+                            min-width: 64px;
+                            preferred-width: 234px;
+                            max-width: 234px;
+                            border-radius: 9px;
+                            background: panel.on ? Theme.accent : (panel-chip.has-hover ? Theme.raised : Theme.panel-alt);
+                            border-width: 1px;
+                            border-color: panel.on ? Theme.accent : Theme.border;
+                            animate background { duration: 110ms; }
+                            accessible-role: checkbox;
+                            accessible-label: panel.name;
+                            accessible-checkable: true;
+                            accessible-checked: panel.on;
+                            accessible-action-default => {
+                                root.set-display(i, !panel.on);
+                            }
+
+                            Text {
+                                x: 10px;
+                                width: parent.width - 20px;
+                                height: parent.height;
+                                text: panel.name;
+                                color: panel.on ? #0a0a0b : Theme.text-dim;
+                                font-size: 12px;
+                                font-weight: 700;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                                overflow: elide;
+                            }
+
+                            panel-chip := TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => {
+                                    root.set-display(i, !panel.on);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if root.displays.length > 0: Divider { }
 
                 VerticalLayout {
                     spacing: 8px;
@@ -1603,6 +1969,11 @@ export component MainWindow inherits Window {
                             border-width: 1px;
                             border-color: root.hotkey-index == i ? Theme.accent : Theme.border;
                             animate background { duration: 110ms; }
+                            accessible-role: button;
+                            accessible-label: key;
+                            accessible-action-default => {
+                                root.set-hotkey(i);
+                            }
 
                             Text {
                                 text: key;
@@ -1652,6 +2023,11 @@ export component MainWindow inherits Window {
                             border-width: 1px;
                             border-color: root.language == entry.code ? Theme.accent : Theme.border;
                             animate background { duration: 110ms; }
+                            accessible-role: button;
+                            accessible-label: entry.name;
+                            accessible-action-default => {
+                                root.set-language(entry.code);
+                            }
 
                             Text {
                                 text: entry.name;

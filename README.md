@@ -14,6 +14,8 @@
 <p align="center">
   <a href="https://github.com/Talkdedsec/tlk-visual/releases/latest"><b>download</b></a>
   &nbsp;·&nbsp;
+  <a href="https://talkdedsec.github.io/tlk-visual/#try"><b>try it in the browser</b></a>
+  &nbsp;·&nbsp;
   <a href="#build-from-source"><b>build</b></a>
   &nbsp;·&nbsp;
   <a href="#how-it-works"><b>how it works</b></a>
@@ -46,8 +48,15 @@ control cards. Under them sits a live preview with a draggable before/after spli
 there and watch the result before it reaches the screen. **Hold to compare** drops the effect for as
 long as the mouse is down.
 
-Right rail saves profiles and prints the transfer curve: five points showing what each input level
-becomes on the red, green and blue channels, updating as you drag.
+Right rail saves profiles and draws the transfer curve — what each input level becomes on screen,
+against the diagonal of a display left alone. It is one line while the channels agree and splits into
+red, green and blue once temperature pulls them apart, redrawn as you drag. Under it, two figures say
+what the engine is doing: how much of your setting Windows let through, and on how many displays.
+The screenshot above shows the first of them earning its place — Windows turned Night Vision down
+to 85%, and the panel says so in amber rather than pretending.
+
+A window shorter than 760 pixels drops the live preview and the source-code card, so the controls,
+presets and profiles still fit down to the 680-pixel minimum.
 
 <br>
 
@@ -65,7 +74,12 @@ Every slider carries a tick at its neutral position, and every value box is edit
 press <kbd>Enter</kbd>, done.
 
 Sliders take the keyboard too: <kbd>←</kbd> <kbd>→</kbd> move by a hundredth of the range,
-<kbd>Home</kbd> and <kbd>End</kbd> pin the ends.
+<kbd>Home</kbd> and <kbd>End</kbd> pin the ends. The mouse wheel moves them in the same steps, and a
+double-click puts one back on its neutral tick. Each slider ends exactly where the engine clamps, so
+there is no stretch of track at either end that the value snaps back from.
+
+The key next to **Auto-apply** in the status bar is the global shortcut, because that toggle is what it
+flips.
 
 Saturation and hue are deliberately absent. A gamma ramp is one curve per channel and cannot mix
 channels, so no honest implementation of them exists on this path. Shipping dead sliders would be
@@ -81,7 +95,8 @@ Each of the 256 input levels is pushed through the five stages in a fixed order:
 night vision → gamma → contrast → brightness → temperature
 ```
 
-The result is a 256-entry table per channel, handed to `SetDeviceGammaRamp` on every attached display.
+The result is a 256-entry table per channel, handed to `SetDeviceGammaRamp` on every display you
+selected.
 The maths lives in [`src/color.rs`](src/color.rs) and is held down by unit tests: the neutral setting
 must reproduce the identity ramp exactly, every curve must stay monotonic, contrast must pivot on mid
 grey, gamma must leave black and white untouched, and night vision must lift shadows at least ten
@@ -100,7 +115,20 @@ bar exactly how much of your setting survived.
 
 Gamma ramps also outlive the process that set them. The engine reads and stores the ramp of every
 display at startup and puts it back on exit, and the restore also runs if the window is closed to the
-tray or the effect is toggled off.
+tray or the effect is toggled off. If a previous run died before it could restore, the ramp it left
+behind is recognised at the next start — it matches the saved settings — and cleared instead of being
+mistaken for the original.
+
+### When something else resets it
+
+A game entering exclusive fullscreen, a panel waking from sleep and a resolution change all put the
+display's ramp back to whatever Windows thinks it should be. The engine reads each display's ramp
+once a second and writes the effect again when it has been replaced, so it comes back on its own.
+
+If the ramp keeps getting replaced — five times in twenty seconds — something is fighting for the
+display: another colour tool, or a game that drives its own brightness through the ramp. The engine
+steps aside for that display rather than flicker against it, and the status bar says so. Changing
+any setting takes it back.
 
 <br>
 
@@ -123,7 +151,8 @@ installer, no .NET, no WebView2, no runtime of any kind. Windows SmartScreen wil
 time because the binary is not code-signed yet; verify the checksum below before choosing
 **More info → Run anyway**.
 
-Settings, profiles and the last slider positions live in one file:
+Settings, profiles, the displays you left out and the last slider positions live in one file, written
+within a second of any change:
 
 ```
 %APPDATA%\Talkdedsec\Visual\config.json
@@ -164,6 +193,22 @@ failing silently.
 Run at startup is a single registry value under `HKCU\...\CurrentVersion\Run`, added with `--tray` so
 it comes up minimised; switching it off removes the value.
 
+Only one copy runs at a time. Starting the program again while it sits in the tray brings the open
+window forward instead of putting a second icon next to it.
+
+<br>
+
+## Displays
+
+Settings lists every connected display by the name in its own EDID — `LG ULTRAGEAR`, `DELL U2720Q` —
+with a laptop's own panel shown as *Built-in display*. Number 1 is the main display. Click one to
+leave it out: its original ramp goes straight back and the effect stays off it, which is how a second
+screen or a TV is kept untouched. At least one display always stays selected.
+
+The choice follows the panel rather than the port number Windows hands out, so it survives a reboot.
+A display plugged in while the program runs is picked up within a second and gets the effect too,
+unless you left it out before.
+
 <br>
 
 ## Language
@@ -172,12 +217,18 @@ The panel, the tray menu and every status message come in English and Turkish. A
 the Windows display language; pick one in settings and the window switches on the spot, and the
 choice is kept in `config.json`. Both languages are compiled into the executable.
 
+Every control also has a name and a role for screen readers and other UI Automation clients: sliders
+report their value and range and can be stepped, switches report on or off, and the icon-only buttons
+say what they do. <kbd>Esc</kbd> closes the settings.
+
 <br>
 
 ## Profiles
 
 Name the current slider positions and they are saved. Saving under a name that already exists
-overwrites it, so repeated saves do not pile up duplicates. Profiles export to plain JSON and import
+overwrites it, so repeated saves do not pile up duplicates. The profile that matches the sliders is
+highlighted, the list scrolls however many you keep, and deleting takes two clicks — the bin turns
+into *Delete?* first — so a stray click cannot cost one. Profiles export to plain JSON and import
 back, which is also how you move them between machines:
 
 ```json
@@ -212,11 +263,11 @@ Rust 1.85 or newer is the only prerequisite. There is no C++ toolchain step, no 
 |---|---|
 | `src/color.rs` | The transfer curve and its tests |
 | `src/i18n.rs` | Language choice and the Turkish for text drawn from Rust |
-| `src/engine.rs` | Gamma ramp I/O, the backoff ladder and restore-on-exit |
+| `src/engine.rs` | Displays, gamma ramp I/O, the backoff ladder, the once-a-second watch and restore-on-exit |
 | `src/preview.rs` | The procedural preview scene |
 | `src/presets.rs` | Built-in presets |
 | `src/profiles.rs` | Profile store and JSON import/export |
-| `src/system.rs` | Tray, global hotkey, run-at-startup |
+| `src/system.rs` | Global hotkey, run-at-startup, one copy at a time |
 | `ui/` | Slint interface: `main`, `widgets`, `icons`, `theme` |
 | `lang/` | Turkish catalog for the Slint interface, bundled at build time |
 
@@ -230,12 +281,12 @@ repository is traced from anyone else's artwork.
 
 - **Saturation and hue are not possible** on a gamma ramp. See above.
 - **HDR displays** ignore gamma ramps on most drivers. Turn HDR off if nothing happens.
-- **Exclusive fullscreen** hands the display pipeline to the game; some titles reset the ramp on entry.
+- **Exclusive fullscreen** hands the display pipeline to the game. A title that resets the ramp on
+  entry gets it back within a second; one that keeps rewriting it wins, and the status bar says so.
   Borderless windowed is the reliable mode.
 - **The ramp is global.** Every window on that display is affected, not just the game.
-- **Every attached display gets the same ramp.** The program writes to all of them and there is no
-  per-monitor selection, so a second screen you wanted left alone is not left alone. Mixed panels
-  will not land on the same result either — the ramp is a curve, not a calibration.
+- **Every selected display gets the same ramp.** Different settings per display are not possible
+  yet, and mixed panels will not land on the same result — the ramp is a curve, not a calibration.
 - **Windows clamps the range** by default, so extreme settings arrive softened. The status bar tells
   you when that happened.
 

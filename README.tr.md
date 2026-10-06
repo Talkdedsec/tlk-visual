@@ -14,6 +14,8 @@
 <p align="center">
   <a href="https://github.com/Talkdedsec/tlk-visual/releases/latest"><b>indir</b></a>
   &nbsp;·&nbsp;
+  <a href="https://talkdedsec.github.io/tlk-visual/#try"><b>tarayıcıda dene</b></a>
+  &nbsp;·&nbsp;
   <a href="#kaynaktan-derleme"><b>derle</b></a>
   &nbsp;·&nbsp;
   <a href="#nasıl-çalışıyor"><b>nasıl çalışıyor</b></a>
@@ -45,8 +47,15 @@ eğrisinden geçirilmiş hali — kartta gördüğün şey presetin yaptığı �
 Altında sürüklenebilir önce/sonra bölmeli canlı önizleme: sliderları orada ayarlayıp sonucu ekrana
 ulaşmadan görüyorsun. **Basılı tut: orijinal** düğmesi, basılı tuttuğun sürece efekti kaldırıyor.
 
-Sağ ray profilleri kaydediyor ve transfer eğrisini yazdırıyor: her giriş seviyesinin kırmızı, yeşil ve
-mavi kanalda neye dönüştüğünü gösteren beş nokta, sürükledikçe güncelleniyor.
+Sağ ray profilleri kaydediyor ve transfer eğrisini çiziyor — her giriş seviyesinin ekranda neye
+dönüştüğü, dokunulmamış ekranın köşegeniyle yan yana. Kanallar aynıyken tek çizgi; renk sıcaklığı
+onları ayırınca kırmızı, yeşil ve mavi olarak üçe ayrılıyor, sürükledikçe yeniden çiziliyor. Altında
+iki rakam motorun ne yaptığını söylüyor: ayarının ne kadarını Windows'un geçirdiği ve kaç ekranda.
+Yukarıdaki görüntüde ilki işini yapıyor — Windows Gece Görüşü'nü %85'e indirdi, panel de bunu
+saklamak yerine turuncuyla söylüyor.
+
+760 pikselden kısa bir pencerede canlı önizleme ve kaynak kodu kartı gizleniyor; böylece 680
+piksellik en küçük boyutta bile kontroller, presetler ve profiller sığıyor.
 
 <br>
 
@@ -64,7 +73,12 @@ Her sliderda nötr konumu gösteren bir çizgi var ve her değer kutusu yazılab
 <kbd>Enter</kbd>'a bas, tamam.
 
 Sliderlar klavyeyi de dinliyor: <kbd>←</kbd> <kbd>→</kbd> aralığın yüzde birini kaydırıyor,
-<kbd>Home</kbd> ve <kbd>End</kbd> uçlara götürüyor.
+<kbd>Home</kbd> ve <kbd>End</kbd> uçlara götürüyor. Fare tekerleği aynı adımlarla oynatıyor, çift tık
+slideri nötr çizgisine geri koyuyor. Her slider tam olarak motorun kırptığı yerde bitiyor; yani
+iki ucunda değerin geri zıpladığı ölü bir bölge yok.
+
+Durum çubuğunda **Otomatik uygula**'nın yanındaki tuş global kısayol; çünkü kısayolun açıp kapattığı
+şey tam olarak o anahtar.
 
 Doygunluk ve renk tonu bilerek yok. Gama tablosu kanal başına tek eğri; kanalları birbirine karıştıramaz,
 dolayısıyla bu yolda bunların dürüst bir uygulaması mümkün değil. Çalışmayan slider koymaktansa hiç
@@ -80,7 +94,7 @@ koymamak daha doğru.
 gece görüşü → gama → kontrast → parlaklık → renk sıcaklığı
 ```
 
-Sonuç, kanal başına 256 girişlik bir tablo; bağlı her ekran için `SetDeviceGammaRamp` ile yazılıyor.
+Sonuç, kanal başına 256 girişlik bir tablo; seçtiğin her ekran için `SetDeviceGammaRamp` ile yazılıyor.
 Matematik [`src/color.rs`](src/color.rs) içinde ve birim testleriyle bağlı: nötr ayar birim tabloyu
 birebir üretmeli, her eğri monoton kalmalı, kontrast orta gri üzerinde dönmeli, gama siyah ve beyaza
 dokunmamalı, gece görüşü gölgeleri parlak alanlardan en az on kat fazla kaldırmalı.
@@ -98,7 +112,19 @@ kadarının geçtiğini söylüyor.
 
 Gama tabloları, onu yazan süreç ölse bile ekranda kalıyor. Bu yüzden motor açılışta her ekranın mevcut
 tablosunu okuyup saklıyor ve çıkışta geri yazıyor; pencere tepsiye indiğinde ya da efekt kapatıldığında
-da aynı geri yükleme çalışıyor.
+da aynı geri yükleme çalışıyor. Önceki çalışma geri yükleyemeden öldüyse, geride bıraktığı tablo bir
+sonraki açılışta tanınıyor — kayıtlı ayarlarla eşleşiyor — ve orijinal sanılmak yerine temizleniyor.
+
+### Başka bir şey sıfırladığında
+
+Exclusive fullscreen'e giren bir oyun, uykudan uyanan bir ekran ve çözünürlük değişikliği, ekranın
+tablosunu Windows'un doğru bildiği hale geri çekiyor. Motor her ekranın tablosunu saniyede bir okuyor ve
+yerine başka bir şey yazılmışsa efekti yeniden yazıyor; yani efekt kendiliğinden geri geliyor.
+
+Tablo sürekli değiştiriliyorsa — yirmi saniyede beş kez — biri ekran için kavga ediyor demektir: başka
+bir renk aracı ya da parlaklığını tablo üzerinden yöneten bir oyun. Motor o ekranda titreştirerek karşılık
+vermek yerine kenara çekiliyor ve durum çubuğunda bunu söylüyor. Herhangi bir ayarı değiştirmek ekranı
+geri alıyor.
 
 <br>
 
@@ -120,7 +146,8 @@ Ya da [Releases](https://github.com/Talkdedsec/tlk-visual/releases/latest) sayfa
 hiçbir runtime yok. Dosya henüz imzalı olmadığı için Windows SmartScreen ilk seferinde uyarı verecek;
 **Ek bilgi → Yine de çalıştır** demeden önce aşağıdaki özeti doğrula.
 
-Ayarlar, profiller ve son slider konumları tek bir dosyada:
+Ayarlar, profiller, dışarıda bıraktığın ekranlar ve son slider konumları tek bir dosyada; her
+değişiklikten sonra bir saniye içinde yazılıyor:
 
 ```
 %APPDATA%\Talkdedsec\Visual\config.json
@@ -161,6 +188,22 @@ bunu söylüyor.
 Windows açılışında başlatma, `HKCU\...\CurrentVersion\Run` altında tek bir kayıt değeri; tepsiye
 küçültülmüş gelsin diye `--tray` ile ekleniyor, kapatınca değer siliniyor.
 
+Aynı anda tek kopya çalışıyor. Program tepside dururken yeniden başlatılırsa, yanına ikinci bir ikon
+koymak yerine açık olan pencereyi öne getiriyor.
+
+<br>
+
+## Ekranlar
+
+Ayarlar, bağlı her ekranı kendi EDID'sinde yazan adla listeliyor — `LG ULTRAGEAR`, `DELL U2720Q` —
+dizüstünün kendi paneli *Dahili ekran* olarak görünüyor. 1 numara ana ekran. Birine tıklayınca
+dışarıda kalıyor: orijinal tablosu hemen geri yazılıyor ve efekt ona uğramıyor; ikinci ekranı ya da
+televizyonu dokunulmamış tutmanın yolu bu. En az bir ekran her zaman seçili kalıyor.
+
+Seçim, Windows'un dağıttığı port numarasını değil paneli izliyor, yani yeniden başlatmadan sonra da
+geçerli. Program çalışırken takılan bir ekran bir saniye içinde yakalanıyor ve — daha önce dışarıda
+bırakmadıysan — efekti o da alıyor.
+
 <br>
 
 ## Dil
@@ -169,13 +212,19 @@ Panel, tepsi menüsü ve bütün durum mesajları İngilizce ve Türkçe. İlk a
 dilini izliyor; ayarlardan birini seçtiğinde pencere anında değişiyor ve seçim `config.json` dosyasında
 saklanıyor. İki dil de exe'nin içine derleniyor.
 
+Her kontrolün ekran okuyucular ve diğer UI Automation istemcileri için bir adı ve rolü de var:
+sliderlar değerini ve aralığını bildiriyor ve adım adım oynatılabiliyor, anahtarlar açık/kapalı
+olduğunu söylüyor, sadece ikonlu düğmeler ne yaptığını söylüyor. <kbd>Esc</kbd> ayarları kapatıyor.
+
 <br>
 
 ## Profiller
 
 Anlık slider konumlarını isimlendirdiğinde kaydediliyor. Var olan bir isme kaydetmek üzerine yazıyor,
-yani tekrar tekrar kaydetmek kopya yığmıyor. Profiller düz JSON olarak dışa aktarılıp geri alınabiliyor;
-makineler arası taşımanın yolu da bu:
+yani tekrar tekrar kaydetmek kopya yığmıyor. Sliderlarla eşleşen profil vurgulanıyor, liste kaç
+profil tutarsan tut kayıyor ve silmek iki tık istiyor — çöp kutusu önce *Sil?* oluyor — yani yanlış bir
+tık profil kaybettirmiyor. Profiller düz JSON olarak dışa aktarılıp geri alınabiliyor; makineler arası
+taşımanın yolu da bu:
 
 ```json
 [
@@ -209,11 +258,11 @@ Tek gereksinim Rust 1.85 ve üzeri. C++ toolchain adımı yok, Python yok, `node
 |---|---|
 | `src/color.rs` | Transfer eğrisi ve testleri |
 | `src/i18n.rs` | Dil seçimi ve Rust tarafında çizilen metinlerin Türkçesi |
-| `src/engine.rs` | Gama tablosu okuma/yazma, kademeli geri çekilme, çıkışta geri yükleme |
+| `src/engine.rs` | Ekranlar, gama tablosu okuma/yazma, kademeli geri çekilme, saniyelik nöbet, çıkışta geri yükleme |
 | `src/preview.rs` | Prosedürel önizleme sahnesi |
 | `src/presets.rs` | Hazır presetler |
 | `src/profiles.rs` | Profil deposu ve JSON içe/dışa aktarma |
-| `src/system.rs` | Tepsi, global kısayol, açılışta başlatma |
+| `src/system.rs` | Global kısayol, açılışta başlatma, tek kopya |
 | `ui/` | Slint arayüzü: `main`, `widgets`, `icons`, `theme` |
 | `lang/` | Slint arayüzünün Türkçe kataloğu, derleme sırasında exe'ye gömülüyor |
 
@@ -227,12 +276,12 @@ görselinden izlenmiş hiçbir şey yok.
 
 - **Doygunluk ve renk tonu gama tablosuyla mümkün değil.** Yukarıda anlattım.
 - **HDR ekranlarda** çoğu sürücü gama tablosunu yok sayıyor. Hiçbir şey olmuyorsa HDR'ı kapat.
-- **Exclusive fullscreen** ekran hattını oyuna devrediyor; bazı oyunlar girişte tabloyu sıfırlıyor.
+- **Exclusive fullscreen** ekran hattını oyuna devrediyor. Girişte tabloyu sıfırlayan oyun onu bir
+  saniye içinde geri alıyor; sürekli yeniden yazan oyun kazanıyor, durum çubuğu da bunu söylüyor.
   Güvenilir mod borderless (kenarlıksız pencere).
 - **Tablo ekranın tamamına uygulanıyor.** Sadece oyun değil, o ekrandaki her pencere etkileniyor.
-- **Bağlı her ekran aynı tabloyu alıyor.** Program hepsine yazıyor, ekran başına seçim yok; yani
-  dokunulmasını istemediğin ikinci ekran da dokunulmuş oluyor. Farklı paneller aynı sonuca da
-  varmıyor — bu bir eğri, kalibrasyon değil.
+- **Seçili her ekran aynı tabloyu alıyor.** Ekran başına farklı ayar henüz yok; farklı paneller aynı
+  sonuca da varmıyor — bu bir eğri, kalibrasyon değil.
 - **Windows aralığı varsayılan olarak kısıtlıyor,** yani uç ayarlar yumuşatılmış geliyor. Durum çubuğu
   bunu olduğunda söylüyor.
 

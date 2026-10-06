@@ -138,18 +138,6 @@ msgstr "Profili kaydet"
 msgid "ENGINE"
 msgstr "MOTOR"
 
-msgid "How it works"
-msgstr "Nasıl çalışıyor"
-
-msgid "The display adapter's gamma ramp is rewritten directly. It works on the panel, not the game — so it applies to every game and every app."
-msgstr "Ekran kartının gama tablosu doğrudan yeniden yazılır. Oyuna değil panele çalışır — her oyunda ve her uygulamada geçerlidir."
-
-msgid "• No game files are changed\n• No process injection\n• No administrator rights needed\n• No measurable FPS loss"
-msgstr "• Oyun dosyası değiştirilmez\n• Sürece enjeksiyon yok\n• Yönetici yetkisi gerekmez\n• Ölçülebilir FPS kaybı yok"
-
-msgid "TRANSFER CURVE"
-msgstr "TRANSFER EĞRİSİ"
-
 msgid "Import"
 msgstr "İçe aktar"
 
@@ -171,6 +159,12 @@ msgstr "Kapatınca tepsiye küçült"
 msgid "When off, the close button quits the program."
 msgstr "Kapalıyken çarpı tuşu programı tamamen kapatır."
 
+msgid "Displays"
+msgstr "Ekranlar"
+
+msgid "Only the selected displays are changed. 1 is the main display."
+msgstr "Yalnızca seçili ekranlar değişir. 1 ana ekrandır."
+
 msgid "Global shortcut"
 msgstr "Global kısayol"
 
@@ -188,3 +182,39 @@ msgstr "Sürüm {} · GPL-3.0"
 
 msgid "Source code"
 msgstr "Kaynak kodu"
+
+msgid "Transfer curve"
+msgstr "Transfer eğrisi"
+
+msgid "What each input level becomes on screen. The diagonal is the display left alone."
+msgstr "Her giriş seviyesinin ekranda neye dönüştüğü. Köşegen, ekranın dokunulmamış hali."
+
+msgid "STRENGTH"
+msgstr "GÜÇ"
+
+msgid "DISPLAYS"
+msgstr "EKRANLAR"
+
+msgid "Delete?"
+msgstr "Sil?"
+
+msgid "Delete profile"
+msgstr "Profili sil"
+
+msgid "Settings"
+msgstr "Ayarlar"
+
+msgid "Apply now"
+msgstr "Şimdi uygula"
+
+msgid "Minimise"
+msgstr "Küçült"
+
+msgid "Close"
+msgstr "Kapat"
+
+msgid "Reset {}"
+msgstr "{} değerini sıfırla"
+
+msgid "Auto-apply"
+msgstr "Otomatik uygula"

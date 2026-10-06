@@ -12,11 +12,12 @@ mod profiles;
 mod system;
 
 use std::cell::RefCell;
+use std::fmt::Write;
 use std::rc::Rc;
 use std::time::Duration;
 
 use color::Settings;
-use engine::{Applied, Engine};
+use engine::{Applied, Engine, Monitor};
 use i18n::{fill, number, t, Lang};
 use preview::Scene;
 use profiles::Store;
@@ -28,6 +29,9 @@ slint::include_modules!();
 
 const REPO_URL: &str = "https://github.com/Talkdedsec/tlk-visual";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+/// Logical height under which the left rail drops its source-code card so the
+/// presets and profiles still fit.
+const COMPACT_BELOW: f32 = 760.0;
 
 struct App {
     settings: Settings,
@@ -51,10 +55,24 @@ impl App {
         }
     }
 
-    fn remember(&mut self) {
+    /// Writes the store when anything in it is out of date. Runs every second, so
+    /// shutting Windows down with the window in the tray keeps the last change.
+    fn persist(&mut self) {
+        let excluded = self.engine.as_ref().map_or_else(
+            || self.store.excluded_displays.clone(),
+            |e| e.excluded().to_vec(),
+        );
+        if self.store.last == self.settings
+            && self.store.auto_apply == self.auto_apply
+            && self.store.tray_on_close == self.tray_on_close
+            && self.store.excluded_displays == excluded
+        {
+            return;
+        }
         self.store.last = self.settings;
         self.store.auto_apply = self.auto_apply;
         self.store.tray_on_close = self.tray_on_close;
+        self.store.excluded_displays = excluded;
         self.store.save();
     }
 
@@ -117,20 +135,86 @@ impl App {
     }
 }
 
-/// Five points along the transfer curve, which is what a gamma ramp really is.
-fn curve_readout(settings: &Settings) -> String {
-    let stops = [0.0f32, 0.25, 0.5, 0.75, 1.0];
-    let mut lines = vec!["in     R    G    B".to_string()];
-    for stop in stops {
-        lines.push(format!(
-            "{:>3}  {:>3}  {:>3}  {:>3}",
-            (stop * 255.0) as i32,
-            (settings.channel(stop, 0) * 255.0).round() as i32,
-            (settings.channel(stop, 1) * 255.0).round() as i32,
-            (settings.channel(stop, 2) * 255.0).round() as i32,
-        ));
+/// One channel of the transfer curve, which is what a gamma ramp really is, as
+/// path commands in a 255 × 255 box with y pointing down. 65 points are enough
+/// for a line a few hundred pixels wide.
+fn curve_path(settings: &Settings, channel: usize) -> String {
+    let mut path = String::with_capacity(800);
+    for step in 0..=64usize {
+        let level = (step * 4).min(255) as f32;
+        let out = 255.0 - settings.channel(level / 255.0, channel) * 255.0;
+        let verb = if step == 0 { 'M' } else { 'L' };
+        let _ = write!(path, "{verb}{level:.0} {out:.1} ");
     }
-    lines.join("\n")
+    path.truncate(path.trim_end().len());
+    path
+}
+
+/// The two figures under the curve: how much of the setting Windows let through,
+/// and on how many displays.
+fn engine_figures(app: &App) -> (String, bool, String) {
+    let Some(engine) = app.engine.as_ref() else {
+        return ("—".into(), false, "—".into());
+    };
+    let total = engine.displays().count();
+    let on = engine.displays().filter(|(_, on)| *on).count();
+    let (strength, warn) = if engine.paused() {
+        (t("Paused").to_string(), true)
+    } else {
+        match engine.strength() {
+            None if !app.auto_apply => (t("Off").to_string(), false),
+            None => ("—".to_string(), false),
+            Some(f) => (fill(t("{}%"), &[&((f * 100.0).round() as i32)]), f < 1.0),
+        }
+    };
+    (strength, warn, format!("{on} / {total}"))
+}
+
+fn show_engine(ui: &MainWindow, app: &App) {
+    let (strength, warn, displays) = engine_figures(app);
+    ui.set_strength_text(strength.into());
+    ui.set_strength_warn(warn);
+    ui.set_displays_text(displays.into());
+}
+
+/// The sliders stop where the engine clamps, so neither end has a dead zone.
+fn share_ranges(ui: &MainWindow) {
+    let ranges = ui.global::<Ranges>();
+    ranges.set_brightness_min(Settings::BRIGHTNESS_RANGE.0);
+    ranges.set_brightness_max(Settings::BRIGHTNESS_RANGE.1);
+    ranges.set_contrast_min(Settings::CONTRAST_RANGE.0);
+    ranges.set_contrast_max(Settings::CONTRAST_RANGE.1);
+    ranges.set_gamma_min(Settings::GAMMA_RANGE.0);
+    ranges.set_gamma_max(Settings::GAMMA_RANGE.1);
+    ranges.set_temperature_min(Settings::TEMPERATURE_RANGE.0);
+    ranges.set_temperature_max(Settings::TEMPERATURE_RANGE.1);
+    ranges.set_night_vision_min(Settings::NIGHT_VISION_RANGE.0);
+    ranges.set_night_vision_max(Settings::NIGHT_VISION_RANGE.1);
+}
+
+/// Numbered in the order the settings show them, main display first.
+fn display_label(index: usize, monitor: &Monitor) -> String {
+    let name = match &monitor.name {
+        Some(name) => name.as_str(),
+        None if monitor.internal => t("Built-in display"),
+        None => t("Display"),
+    };
+    format!("{} · {name}", index + 1)
+}
+
+fn display_rows(engine: Option<&Engine>) -> Vec<DisplayEntry> {
+    engine
+        .map(|engine| {
+            engine
+                .displays()
+                .enumerate()
+                .map(|(index, (monitor, on))| DisplayEntry {
+                    name: display_label(index, monitor).into(),
+                    on,
+                })
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn sync(ui: &MainWindow, app: &App, status: String) {
@@ -148,10 +232,22 @@ fn sync(ui: &MainWindow, app: &App, status: String) {
     ui.set_night_vision_text(number(s.night_vision, 2, false).into());
 
     ui.set_preview_after(app.scene.render(&s));
-    ui.set_matrix_text(curve_readout(&s).into());
+    ui.set_curve_red(curve_path(&s, 0).into());
+    ui.set_curve_green(curve_path(&s, 1).into());
+    ui.set_curve_blue(curve_path(&s, 2).into());
+    // Only temperature pulls the channels apart; until then one line says it all.
+    ui.set_curve_mono(s.clamped().temperature.abs() < 1e-4);
+    ui.set_selected_profile(
+        app.store
+            .profiles
+            .iter()
+            .position(|p| p.settings == s)
+            .map_or(-1, |i| i as i32),
+    );
     ui.set_engine_active(!s.is_neutral() && app.auto_apply && app.engine.is_some());
     ui.set_status_text(status.into());
     ui.set_status_detail(app.detail().into());
+    show_engine(ui, app);
 }
 
 /// Rust-side text and Slint's bundled catalog switch together. Slint only knows
@@ -186,6 +282,10 @@ fn open_url(url: &str) {
 }
 
 fn main() -> Result<(), slint::PlatformError> {
+    let system::Instance::First(summons) = system::claim() else {
+        return Ok(());
+    };
+
     let ui = MainWindow::new()?;
     let app = Rc::new(RefCell::new(App::new()));
 
@@ -198,13 +298,20 @@ fn main() -> Result<(), slint::PlatformError> {
         .unwrap_or_else(Lang::system);
     use_language(&ui, lang);
 
-    let startup = match Engine::new() {
+    let engine = {
+        let app = app.borrow();
+        Engine::new(&app.store.excluded_displays, &app.store.last)
+    };
+    let startup = match engine {
         Ok(engine) => {
             app.borrow_mut().engine = Some(engine);
             t("Ready.").to_string()
         }
         Err(_) => t("The display driver does not accept a gamma ramp.").to_string(),
     };
+
+    let display_model = Rc::new(VecModel::from(display_rows(app.borrow().engine.as_ref())));
+    ui.set_displays(ModelRc::from(display_model.clone()));
 
     let thumbs = Scene::thumbnail(160, 92);
     let preset_model = Rc::new(VecModel::from(presets::ui_models(&thumbs)));
@@ -214,6 +321,7 @@ fn main() -> Result<(), slint::PlatformError> {
     profile_model.set_vec(app.borrow().store.names());
     ui.set_profiles(ModelRc::from(profile_model.clone()));
 
+    share_ranges(&ui);
     ui.set_preview_before(app.borrow().scene.render(&Settings::default()));
     ui.set_version(VERSION.into());
     ui.set_hotkeys(ModelRc::from(Rc::new(VecModel::from(
@@ -301,6 +409,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 app.push()
             };
             ui.set_status_text(status.into());
+            show_engine(&ui, &app);
         }
     });
 
@@ -545,8 +654,38 @@ fn main() -> Result<(), slint::PlatformError> {
             let ui = ui.unwrap();
             let mut app = app.borrow_mut();
             app.tray_on_close = on;
-            app.remember();
+            app.persist();
             ui.set_tray_on_close(on);
+        }
+    });
+
+    ui.on_set_display({
+        let ui = ui.as_weak();
+        let app = app.clone();
+        let model = display_model.clone();
+        move |index, on| {
+            let ui = ui.unwrap();
+            let mut app = app.borrow_mut();
+            let Some(engine) = app.engine.as_mut() else {
+                return;
+            };
+            let index = index as usize;
+            let accepted = engine.set_enabled(index, on);
+            let label = engine
+                .displays()
+                .nth(index)
+                .map(|(monitor, _)| display_label(index, monitor))
+                .unwrap_or_default();
+            model.set_vec(display_rows(app.engine.as_ref()));
+            let status = if !accepted {
+                t("At least one display has to stay selected.").to_string()
+            } else if on {
+                fill(t("{} is included."), &[&label])
+            } else {
+                fill(t("{} is left out."), &[&label])
+            };
+            app.persist();
+            sync(&ui, &app, status);
         }
     });
 
@@ -683,6 +822,7 @@ fn main() -> Result<(), slint::PlatformError> {
         let ui = ui.as_weak();
         let app = app.clone();
         let tray = (tray_show.clone(), tray_toggle.clone(), tray_quit.clone());
+        let displays = display_model.clone();
         move |code| {
             let ui = ui.unwrap();
             let Some(lang) = Lang::from_code(&code) else {
@@ -692,6 +832,7 @@ fn main() -> Result<(), slint::PlatformError> {
             presets::relabel(&preset_model);
             label_tray(&tray.0, &tray.1, &tray.2);
             let mut app = app.borrow_mut();
+            displays.set_vec(display_rows(app.engine.as_ref()));
             app.store.language = Some(lang.code().to_string());
             app.store.save();
             sync(&ui, &app, t("Language changed.").into());
@@ -711,6 +852,17 @@ fn main() -> Result<(), slint::PlatformError> {
             let Some(ui) = ui.upgrade() else {
                 return;
             };
+
+            if summons.raised() {
+                let _ = ui.show();
+                ui.window().set_minimized(false);
+            }
+
+            let window = ui.window();
+            let compact = (window.size().height as f32) / window.scale_factor() < COMPACT_BELOW;
+            if ui.get_compact() != compact {
+                ui.set_compact(compact);
+            }
 
             let hotkey_id = hotkeys.borrow().as_ref().and_then(|m| m.id());
             while let Ok(event) = global_hotkey::GlobalHotKeyEvent::receiver().try_recv() {
@@ -735,13 +887,50 @@ fn main() -> Result<(), slint::PlatformError> {
         }
     });
 
+    let watch = slint::Timer::default();
+    watch.start(slint::TimerMode::Repeated, Duration::from_secs(1), {
+        let ui = ui.as_weak();
+        let app = app.clone();
+        let displays = display_model.clone();
+        move || {
+            let Some(ui) = ui.upgrade() else {
+                return;
+            };
+            let mut app = app.borrow_mut();
+            app.persist();
+            let Some(engine) = app.engine.as_mut() else {
+                return;
+            };
+            let report = engine.watch();
+            if report.displays_changed {
+                displays.set_vec(display_rows(app.engine.as_ref()));
+            }
+            if report != engine::Watch::default() {
+                show_engine(&ui, &app);
+            }
+            let status = if report.gave_up > 0 {
+                t("Another program keeps changing the colours — paused until you change a setting.")
+            } else if report.restored > 0 {
+                t("The display was reset — applied again.")
+            } else if report.displays_changed {
+                t("Display list updated.")
+            } else {
+                return;
+            };
+            ui.set_status_text(status.into());
+        }
+    });
+
     let hidden = std::env::args().any(|a| a == "--tray");
     if !hidden {
         ui.show()?;
     }
     slint::run_event_loop_until_quit()?;
 
-    app.borrow_mut().remember();
+    let mut app = app.borrow_mut();
+    app.persist();
+    // Dropping the engine puts every display it touched back the way it was.
+    app.engine = None;
     Ok(())
 }
 
@@ -756,7 +945,7 @@ fn toggle_filter(ui: &MainWindow, app: &Rc<RefCell<App>>) {
         }
         t("Waiting.").to_string()
     };
-    app.remember();
+    app.persist();
     ui.set_auto_apply(app.auto_apply);
     sync(ui, &app, status);
 }
@@ -792,5 +981,68 @@ mod tests {
         assert_eq!(ui.get_status_text(), "Ready.");
         assert_eq!(t("Ready."), "Ready.");
         assert_eq!(model.row_data(0).unwrap().name, "Clear");
+
+        // The same window proves the sliders end exactly where the engine clamps.
+        share_ranges(&ui);
+        let r = ui.global::<Ranges>();
+        let pairs = [
+            (
+                (r.get_brightness_min(), r.get_brightness_max()),
+                Settings::BRIGHTNESS_RANGE,
+            ),
+            (
+                (r.get_contrast_min(), r.get_contrast_max()),
+                Settings::CONTRAST_RANGE,
+            ),
+            (
+                (r.get_gamma_min(), r.get_gamma_max()),
+                Settings::GAMMA_RANGE,
+            ),
+            (
+                (r.get_temperature_min(), r.get_temperature_max()),
+                Settings::TEMPERATURE_RANGE,
+            ),
+            (
+                (r.get_night_vision_min(), r.get_night_vision_max()),
+                Settings::NIGHT_VISION_RANGE,
+            ),
+        ];
+        for (slider, engine) in pairs {
+            assert_eq!(slider, engine);
+        }
+    }
+
+    /// The y of the point at `step` (level `step * 4`) in a curve path.
+    fn height_at(path: &str, step: usize) -> f32 {
+        let point = path
+            .split(['M', 'L'])
+            .filter(|p| !p.is_empty())
+            .nth(step)
+            .unwrap();
+        point.split_whitespace().nth(1).unwrap().parse().unwrap()
+    }
+
+    #[test]
+    fn the_neutral_curve_is_the_diagonal() {
+        let path = curve_path(&Settings::default(), 0);
+        assert!(path.starts_with("M0 255.0 L4 251.0"), "{path}");
+        assert!(path.ends_with("L255 0.0"), "{path}");
+        assert_eq!(path.matches('L').count(), 64);
+        for step in 0..=64 {
+            let level = (step * 4).min(255) as f32;
+            assert!((height_at(&path, step) - (255.0 - level)).abs() <= 0.1);
+        }
+    }
+
+    #[test]
+    fn a_warm_curve_puts_red_above_blue() {
+        let warm = Settings {
+            temperature: 0.8,
+            ..Default::default()
+        };
+        // Smaller y is higher on screen.
+        let red = height_at(&curve_path(&warm, 0), 32);
+        let blue = height_at(&curve_path(&warm, 2), 32);
+        assert!(red < blue, "red {red} blue {blue}");
     }
 }
