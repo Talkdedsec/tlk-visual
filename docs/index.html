@@ -4,230 +4,734 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title data-tr="Talkdedsec Visual — Windows için ekran renk motoru">Talkdedsec Visual — screen colour engine for Windows</title>
-<meta name="description" content="Brightness, contrast, gamma, temperature and night vision written straight to the display gamma ramp. One 9.4 MB exe. No injection, no driver, no admin rights, zero frame cost.">
+<meta name="description" content="Brightness, contrast, gamma, temperature and night vision written straight to the display gamma ramp. One small exe for Windows: no injection, no driver, no admin rights, zero frame cost. Try the exact maths in your browser.">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="color-scheme" content="dark">
 <link rel="canonical" href="https://talkdedsec.github.io/tlk-visual/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Talkdedsec Visual">
+<meta property="og:site_name" content="Talkdedsec Visual">
+<meta property="og:title" content="Talkdedsec Visual — screen colour engine for Windows">
 <meta property="og:description" content="Real-time screen colour engine for Windows. One exe, no injection, no driver, zero frame cost.">
 <meta property="og:image" content="https://talkdedsec.github.io/tlk-visual/social-preview.png">
 <meta property="og:url" content="https://talkdedsec.github.io/tlk-visual/">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23a3e60b'/><rect x='7' y='9' width='18' height='5' rx='2.5' fill='%230c0f08'/><rect x='7' y='18' width='11' height='5' rx='2.5' fill='%230c0f08'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23a3e60b'/><rect x='7' y='9' width='18' height='5' rx='2.5' fill='%230a0a0b'/><rect x='7' y='18' width='11' height='5' rx='2.5' fill='%230a0a0b'/></svg>">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Talkdedsec Visual",
+  "description": "Real-time screen colour engine for Windows: brightness, contrast, gamma, temperature and night vision written to the display gamma ramp.",
+  "operatingSystem": "Windows 10, Windows 11",
+  "applicationCategory": "UtilitiesApplication",
+  "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+  "downloadUrl": "https://github.com/Talkdedsec/tlk-visual/releases/latest",
+  "codeRepository": "https://github.com/Talkdedsec/tlk-visual",
+  "image": "https://talkdedsec.github.io/tlk-visual/screenshot.png",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
 <style>
   :root{
-    --bg:#0b0d09; --panel:#12150f; --line:#242a1c; --ink:#e8eede; --mute:#9aa48c;
-    --accent:#a3e60b; --violet:#7c5cff; --radius:14px;
-    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --bg:#0a0a0b; --panel:#131316; --panel-2:#0e0e11; --raised:#1a1a1f;
+    --line:#202026; --line-2:#33333d; --ink:#ececf0; --dim:#a1a1ab; --faint:#6b6b75;
+    --accent:#a3e60b; --accent-2:#b8f53a; --magenta:#d946ef; --violet:#7c5cff; --amber:#ffb14d;
+    --red:#ff6161; --green:#5fd97a; --blue:#5b8cff;
+    --radius:14px; --radius-sm:10px;
+    --sans:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:"Cascadia Mono",Consolas,ui-monospace,SFMono-Regular,Menlo,monospace;
+    --nav:60px;
   }
   *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:calc(var(--nav) + 12px)}
   body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 var(--sans);
-       -webkit-font-smoothing:antialiased}
+       -webkit-font-smoothing:antialiased;overflow-x:hidden}
   body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-    background:radial-gradient(60rem 32rem at 78% -12%,rgba(163,230,11,.10),transparent 60%),
-               radial-gradient(46rem 28rem at 8% 6%,rgba(124,92,255,.09),transparent 62%)}
-  .wrap{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:0 24px}
+    background:radial-gradient(60rem 32rem at 82% -10%,rgba(163,230,11,.09),transparent 60%),
+               radial-gradient(46rem 28rem at 6% 4%,rgba(124,92,255,.08),transparent 62%)}
+  .wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 20px}
   a{color:var(--accent);text-decoration:none}
   a:hover{text-decoration:underline}
-  code,kbd{font-family:var(--mono);font-size:.9em}
+  code,kbd,pre,output{font-family:var(--mono)}
+  code{font-size:.88em;background:var(--raised);border:1px solid var(--line);border-radius:6px;padding:.08em .38em}
+  kbd{font-size:.82em;background:var(--panel-2);border:1px solid var(--line-2);border-bottom-width:2px;
+      border-radius:6px;padding:.1em .45em;color:var(--dim)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+  .skip{position:absolute;left:-999px;top:8px;z-index:100;background:var(--accent);color:#0a0a0b;
+        padding:8px 14px;border-radius:8px;font-weight:700}
+  .skip:focus{left:12px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-  header{padding:64px 0 8px}
-  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
-           color:var(--mute)}
-  h1{font-size:clamp(2.3rem,6vw,3.6rem);line-height:1.04;margin:14px 0 0;letter-spacing:-.03em;
-     font-weight:700}
+  /* ---- navigation ---------------------------------------------------- */
+  .top{position:sticky;top:0;z-index:50;height:var(--nav);
+       background:rgba(10,10,11,.78);backdrop-filter:saturate(140%) blur(12px);
+       -webkit-backdrop-filter:saturate(140%) blur(12px);border-bottom:1px solid var(--line)}
+  .top .wrap{display:flex;align-items:center;gap:18px;height:100%}
+  .brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-weight:800;letter-spacing:.06em;
+         font-size:14px;white-space:nowrap}
+  .brand:hover{text-decoration:none}
+  .mark{width:26px;height:26px;border-radius:7px;background:var(--accent);display:grid;place-items:center}
+  .mark i{display:block;height:4px;border-radius:2px;background:#0a0a0b}
+  .mark i:first-child{width:15px;margin-bottom:3px}
+  .mark i:last-child{width:9px;margin-right:6px}
+  .mark span{display:flex;flex-direction:column;align-items:flex-start}
+  .links{display:flex;gap:4px;margin-left:auto}
+  .links a{color:var(--dim);font-size:14px;padding:7px 11px;border-radius:8px}
+  .links a:hover,.links a[aria-current="true"]{color:var(--ink);background:var(--raised);text-decoration:none}
+  .lang{font:600 12px/1 var(--mono);letter-spacing:.08em;padding:9px 12px;border-radius:999px;
+        border:1px solid var(--line-2);background:var(--panel);color:var(--ink);cursor:pointer}
+  .lang:hover{border-color:var(--accent)}
+  .menu{display:none;margin-left:auto;background:var(--panel);border:1px solid var(--line-2);border-radius:9px;
+        color:var(--ink);width:40px;height:36px;cursor:pointer}
+  .menu svg{display:block;margin:auto}
+  .nav-cta{padding:9px 15px !important;font-size:14px !important}
+
+  /* ---- buttons --------------------------------------------------------- */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font:600 15px/1 var(--sans);
+       padding:14px 22px;border-radius:11px;border:1px solid transparent;cursor:pointer;white-space:nowrap}
+  .btn:hover{text-decoration:none}
+  .btn-main{background:var(--accent);color:#0a0a0b}
+  .btn-main:hover{background:var(--accent-2)}
+  .btn-ghost{border-color:var(--line-2);color:var(--ink);background:var(--panel)}
+  .btn-ghost:hover{border-color:#4a4a56;background:var(--raised)}
+  .btn-sm{padding:9px 13px;font-size:13px;border-radius:9px}
+  .btn svg{flex:none}
+
+  /* ---- hero -------------------------------------------------------------- */
+  .hero{padding:72px 0 0;display:grid;gap:44px}
+  .eyebrow{font:600 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+  h1{font-size:clamp(2.4rem,6.4vw,4.2rem);line-height:1.02;margin:16px 0 0;letter-spacing:-.035em;font-weight:750}
   h1 em{font-style:normal;color:var(--accent)}
-  .lede{font-size:clamp(1.05rem,2.4vw,1.3rem);color:#c8d2b8;max-width:56ch;margin:20px 0 0}
+  .lede{font-size:clamp(1.05rem,2.3vw,1.28rem);color:#c9c9d2;max-width:60ch;margin:22px 0 0}
   .facts{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0 0;padding:0;list-style:none}
-  .facts li{font-family:var(--mono);font-size:12.5px;color:var(--mute);
-            border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:#0f120c}
-
-  .cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:30px 0 0}
-  .btn{display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:15px;
-       padding:13px 22px;border-radius:11px;border:1px solid transparent}
-  .btn-main{background:var(--accent);color:#0b0d09}
-  .btn-main:hover{background:#b6f52a;text-decoration:none}
-  .btn-ghost{border-color:var(--line);color:var(--ink);background:#0f120c}
-  .btn-ghost:hover{border-color:#3a442a;text-decoration:none}
-  .cta small{color:var(--mute);font-size:13px;font-family:var(--mono)}
-
-  .shot{margin:52px 0 0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
-        background:var(--panel);box-shadow:0 24px 70px -30px rgba(0,0,0,.9)}
+  .facts li{font:500 12.5px/1 var(--mono);color:var(--dim);border:1px solid var(--line);border-radius:999px;
+            padding:7px 12px;background:var(--panel-2)}
+  .cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:32px 0 0}
+  .release{margin:14px 0 0;font:13px/1.5 var(--mono);color:var(--faint);min-height:1.5em}
+  .release b{color:var(--dim);font-weight:600}
+  .shot{margin:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--panel);
+        box-shadow:0 40px 90px -40px rgba(0,0,0,.95),0 0 0 1px rgba(163,230,11,.04)}
   .shot img{display:block;width:100%;height:auto}
-  figcaption{color:var(--mute);font-size:13.5px;padding:14px 18px;border-top:1px solid var(--line)}
+  .shot figcaption{color:var(--dim);font-size:13.5px;padding:14px 18px;border-top:1px solid var(--line);margin:0}
 
-  section{padding:56px 0 0}
-  h2{font-size:1.45rem;letter-spacing:-.015em;margin:0 0 16px}
-  h3{font-size:1.02rem;margin:0 0 6px;letter-spacing:-.01em}
-  p{margin:0 0 14px;color:#cdd6be}
-  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(248px,1fr))}
-  .card{border:1px solid var(--line);border-radius:var(--radius);padding:20px;background:var(--panel)}
-  .card p{margin:0;font-size:14.5px;color:var(--mute);line-height:1.6}
+  /* ---- sections ---------------------------------------------------------- */
+  section{padding:96px 0 0}
+  .kicker{font:700 11.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+  h2{font-size:clamp(1.6rem,3.6vw,2.3rem);letter-spacing:-.025em;line-height:1.15;margin:12px 0 14px}
+  h3{font-size:1.04rem;margin:0 0 6px;letter-spacing:-.01em}
+  p{margin:0 0 14px;color:#c4c4cd}
+  .intro{max-width:66ch;color:var(--dim);font-size:1.04rem}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));margin-top:30px}
+  .card{border:1px solid var(--line);border-radius:var(--radius);padding:22px;background:var(--panel);position:relative}
+  .card p{margin:0;font-size:14.5px;color:var(--dim);line-height:1.6}
+  .icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;margin-bottom:14px;
+        background:rgba(163,230,11,.1);color:var(--accent)}
+  .icon.m{background:rgba(217,70,239,.12);color:var(--magenta)}
+  .icon.v{background:rgba(124,92,255,.14);color:#a08cff}
+  .icon.g{background:rgba(95,217,122,.12);color:var(--green)}
+  .icon.a{background:rgba(255,177,77,.12);color:var(--amber)}
+  .tag{position:absolute;top:18px;right:18px;font:700 10px/1 var(--mono);letter-spacing:.12em;
+       color:var(--accent);border:1px solid rgba(163,230,11,.35);border-radius:999px;padding:5px 8px}
 
-  .pipe{font-family:var(--mono);font-size:14px;color:var(--accent);background:var(--panel);
-        border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;overflow-x:auto;
-        white-space:nowrap}
+  /* ---- playground -------------------------------------------------------- */
+  .lab{display:grid;gap:16px;grid-template-columns:minmax(0,1fr) 340px;margin-top:30px;align-items:start}
+  .stage-card,.knobs{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
+  .stage-card{padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+  .stage{position:relative;border-radius:10px;overflow:hidden;background:#050506;aspect-ratio:1040/362;touch-action:pan-y}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .stage .before{clip-path:inset(0 calc(100% - var(--split,50%)) 0 0)}
+  .stage .rule{position:absolute;top:0;bottom:0;left:var(--split,50%);width:2px;margin-left:-1px;background:var(--accent);pointer-events:none}
+  .stage .knob{position:absolute;top:50%;left:var(--split,50%);width:32px;height:32px;margin:-16px 0 0 -16px;
+               border-radius:50%;background:var(--accent);display:grid;place-items:center;pointer-events:none;
+               box-shadow:0 4px 18px rgba(0,0,0,.7)}
+  .stage .badge{position:absolute;top:10px;font:700 10px/1 var(--mono);letter-spacing:.1em;padding:6px 9px;
+                border-radius:6px;background:rgba(0,0,0,.78);pointer-events:none}
+  .stage .badge.l{left:10px;color:var(--dim)}
+  .stage .badge.r{right:10px;color:var(--accent)}
+  .stage input[type=range]{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize}
+  .stage-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .presets{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font:600 12.5px/1 var(--sans);color:var(--dim);background:var(--panel-2);border:1px solid var(--line);
+        border-radius:999px;padding:8px 12px;cursor:pointer}
+  .chip:hover{border-color:var(--line-2);color:var(--ink)}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#0a0a0b}
+  .hold{margin-left:auto}
+  .knobs{padding:18px;display:flex;flex-direction:column;gap:14px}
+  .ctl label{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;font-weight:600}
+  .ctl output{font-size:12.5px;color:var(--dim);min-width:52px;text-align:right}
+  .ctl output.on{color:var(--accent)}
+  .ctl small{display:block;color:var(--faint);font-size:11.5px;margin-top:1px}
+  input[type=range].slider{-webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;margin:6px 0 0;cursor:pointer}
+  input[type=range].slider::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--track,#26262c)}
+  input[type=range].slider::-moz-range-track{height:4px;border-radius:2px;background:var(--track,#26262c)}
+  input[type=range].slider::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+       background:var(--accent);margin-top:-5.5px;border:0;box-shadow:0 0 10px rgba(163,230,11,.45)}
+  input[type=range].slider::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--accent);border:0}
+  .lab-foot{display:grid;grid-template-columns:200px minmax(0,1fr);gap:16px;align-items:start}
+  .lab-side{display:flex;flex-direction:column;gap:10px;padding-top:4px}
+  .lab-side h3{margin:0}
+  .curve{border:1px solid var(--line);border-radius:10px;background:#08080a;padding:10px}
+  .curve svg{display:block;width:100%;height:auto}
+  .lab-actions{display:flex;flex-wrap:wrap;gap:8px}
+  .lab-note{font-size:12.5px;color:var(--faint);margin:0}
 
-  pre{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-      padding:16px 18px;overflow-x:auto}
-  pre code{color:#d7e0c6;font-size:13.5px;line-height:1.7}
-  .cmd{color:var(--mute)}
-  .install{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-  .install h3{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
-              color:var(--mute);margin-bottom:10px}
+  /* ---- how it works -------------------------------------------------------- */
+  .pipe{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:30px;counter-reset:stage}
+  .stage-step{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel);padding:16px;position:relative}
+  .stage-step::before{counter-increment:stage;content:"0" counter(stage);font:700 11px/1 var(--mono);color:var(--faint);letter-spacing:.1em}
+  .stage-step h3{margin:8px 0 6px;font-size:.98rem}
+  .stage-step code{display:block;white-space:normal;font-size:11.5px;color:var(--accent);background:var(--panel-2);margin-top:8px;padding:6px 8px;line-height:1.5}
+  .stage-step p{font-size:13px;color:var(--dim);margin:0}
+  .twin{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));margin-top:14px}
+  .ladder{display:flex;flex-direction:column;gap:7px;margin-top:16px}
+  .rung{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;font:12.5px/1 var(--mono);color:var(--faint)}
+  .rung .bar{height:10px;border-radius:5px;background:var(--raised);overflow:hidden}
+  .rung .bar i{display:block;height:100%;border-radius:5px;background:#3a3a44}
+  .rung.no .bar i{background:repeating-linear-gradient(135deg,#3a1520 0 6px,#2a1218 6px 12px)}
+  .rung.ok{color:var(--ink)}
+  .rung.ok .bar i{background:var(--amber)}
+  .rung span:last-child{min-width:5.5em;text-align:right}
+  .timeline{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
+  .timeline li{display:grid;grid-template-columns:86px 1fr;gap:12px;font-size:14px;color:var(--dim)}
+  .timeline b{font:600 12px/1.9 var(--mono);color:var(--accent);white-space:nowrap}
+  .timeline li.warn b{color:var(--amber)}
 
-  table{width:100%;border-collapse:collapse;font-size:14.5px;display:block;overflow-x:auto}
-  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
-  th{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-weight:600}
-  td:first-child{color:var(--ink);font-weight:600}
-  td:last-child{white-space:normal;color:var(--mute)}
+  /* ---- limits table -------------------------------------------------------- */
+  .split{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));margin-top:30px}
+  .list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+  .list li{display:grid;grid-template-columns:22px 1fr;gap:10px;font-size:14.5px;color:var(--dim)}
+  .list li strong{color:var(--ink);font-weight:600}
+  .yes::before,.no-::before{font:700 14px/1.6 var(--mono)}
+  .yes::before{content:"✓";color:var(--accent)}
+  .no-::before{content:"✕";color:var(--red)}
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  .table-wrap{overflow-x:auto;margin-top:30px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
+  th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  th{font:600 11.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint);padding-top:16px}
+  td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+  td.num{font-family:var(--mono);white-space:nowrap;color:var(--dim)}
+  td:last-child{color:var(--dim)}
 
-  .note{border-left:2px solid var(--violet);padding:2px 0 2px 18px;margin:22px 0 0;color:var(--mute);
-        font-size:14.5px}
-  .note strong{color:var(--ink)}
+  /* ---- install --------------------------------------------------------------- */
+  .tabs{display:flex;gap:6px;margin-top:30px;flex-wrap:wrap}
+  .tab{font:600 13.5px/1 var(--sans);color:var(--dim);background:var(--panel-2);border:1px solid var(--line);
+       border-radius:9px;padding:10px 15px;cursor:pointer}
+  .tab[aria-selected="true"]{color:#0a0a0b;background:var(--accent);border-color:var(--accent)}
+  .panel{margin-top:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:20px}
+  .panel p{color:var(--dim);font-size:14.5px}
+  .code{position:relative;margin:0 0 14px}
+  .code pre{margin:0;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:14px 76px 14px 16px;
+            overflow-x:auto;font-size:13.5px;line-height:1.7;color:#d6d6de}
+  pre code{background:none;border:0;padding:0;font-size:inherit;color:inherit}
+  .copy{position:absolute;top:8px;right:8px;font:600 11.5px/1 var(--mono);color:var(--dim);background:var(--raised);
+        border:1px solid var(--line-2);border-radius:7px;padding:7px 9px;cursor:pointer}
+  .copy:hover{color:var(--ink)}
+  .copy.done{color:var(--accent);border-color:rgba(163,230,11,.4)}
+  .reqs{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));margin-top:16px}
+  .req{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--panel-2)}
+  .req b{display:block;font:700 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+  .req span{font-size:14px;color:var(--ink);overflow-wrap:anywhere}
 
-  footer{margin:72px 0 0;border-top:1px solid var(--line);padding:26px 0 60px;color:var(--mute);
-         font-size:14px;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
-  footer a{color:var(--mute)}
-  footer .sep{opacity:.4}
-</style>
-<style>
-  .lang-toggle{position:fixed;top:14px;right:14px;z-index:20;font:600 12px/1 var(--mono,ui-monospace,monospace);
-    letter-spacing:.08em;padding:9px 12px;border-radius:999px;border:1px solid var(--line,#2a2a2a);
-    background:var(--panel,#111);color:var(--ink,#eee);cursor:pointer}
-  .lang-toggle:hover{border-color:var(--accent,#888)}
+  /* ---- faq ---------------------------------------------------------------- */
+  .faq{margin-top:30px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden}
+  details{border-bottom:1px solid var(--line)}
+  details:last-child{border-bottom:0}
+  summary{cursor:pointer;list-style:none;padding:18px 52px 18px 20px;font-weight:600;position:relative}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";position:absolute;right:20px;top:50%;transform:translateY(-50%);
+                 font:400 22px/1 var(--mono);color:var(--faint);transition:transform .2s}
+  details[open] summary::after{transform:translateY(-50%) rotate(45deg);color:var(--accent)}
+  summary:hover{background:var(--panel-2)}
+  details > div{padding:0 20px 18px;color:var(--dim);font-size:14.5px}
+  details > div p{color:var(--dim);margin:0 0 10px}
+
+  /* ---- closing --------------------------------------------------------------- */
+  .closing{margin-top:96px;border:1px solid var(--line);border-radius:20px;padding:44px 28px;text-align:center;
+           background:radial-gradient(40rem 16rem at 50% 0%,rgba(163,230,11,.1),transparent 70%),var(--panel)}
+  .closing h2{margin-top:0}
+  .closing .cta{justify-content:center}
+  footer{margin:72px 0 0;border-top:1px solid var(--line);padding:28px 0 56px;color:var(--faint);font-size:13.5px}
+  footer .row{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
+  footer a{color:var(--dim)}
+  footer p{color:var(--faint);font-size:12.5px;margin:12px 0 0}
+
+  /* ---- responsive ------------------------------------------------------------ */
+  @media (max-width:980px){
+    .lab{grid-template-columns:1fr}
+    .pipe{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .pipe .stage-step:last-child{grid-column:1/-1}
+  }
+  @media (max-width:860px){
+    .menu{display:block}
+    .links{display:none;position:absolute;top:var(--nav);left:0;right:0;flex-direction:column;gap:2px;
+           background:rgba(10,10,11,.97);border-bottom:1px solid var(--line);padding:10px 16px 16px}
+    .links.open{display:flex}
+    .links a{padding:12px 10px;font-size:15px}
+    .nav-cta{display:none !important}
+  }
+  @media (max-width:560px){
+    .wrap{padding:0 16px}
+    .hero{padding-top:44px}
+    section{padding-top:72px}
+    .pipe{grid-template-columns:1fr}
+    .stage-bar .hold{margin-left:0}
+    .lab-foot{grid-template-columns:1fr}
+    .lab-foot .curve{max-width:280px}
+    /* the controls table becomes one card per control */
+    .table-wrap table,.table-wrap tbody,.table-wrap tr,.table-wrap td{display:block}
+    .table-wrap thead{display:none}
+    .table-wrap tr{padding:14px 16px;border-bottom:1px solid var(--line)}
+    .table-wrap tr:last-child{border-bottom:0}
+    .table-wrap td{border:0;padding:0}
+    .table-wrap td:nth-child(3){display:none}
+    .table-wrap td:last-child{margin-top:6px}
+    .btn{width:100%}
+    .cta .btn{flex:1 1 100%}
+    .brand b{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *{transition:none !important;animation:none !important}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
+<a class="skip" href="#main" data-tr="İçeriğe geç">Skip to content</a>
 
-<header>
-  <div class="eyebrow">Talkdedsec · Windows</div>
-  <h1 data-tr="Ekranını &lt;em&gt;düzelt&lt;/em&gt;.">Your screen, <em>corrected</em>.</h1>
-  <p class="lede" data-tr="Beş slider — parlaklık, kontrast, gama, renk sıcaklığı ve gece görüşü — tek bir gama tablosuna derlenip doğrudan ekran kartına yazılıyor. Oyunlar, video, masaüstü: panelin gösterdiği her şey oradan geçiyor.">Five sliders — brightness, contrast, gamma, temperature and night vision —
-     compiled into a gamma ramp and written straight to the display adapter. Games, video, the
-     desktop: everything the panel shows goes through it.</p>
-  <ul class="facts">
-    <li data-tr="9,4 MB, tek exe">9.4 MB, one exe</li>
-    <li data-tr="kurulum yok">no installer</li>
-    <li data-tr="enjeksiyon yok">no injection</li>
-    <li data-tr="sürücü yok">no driver</li>
-    <li data-tr="yönetici yetkisi yok">no admin rights</li>
-    <li data-tr="kare başına 0 maliyet">0 frame cost</li>
-  </ul>
-  <div class="cta">
-    <a class="btn btn-main" href="https://github.com/Talkdedsec/tlk-visual/releases/latest" data-tr="Windows için indir">Download for Windows</a>
-    <a class="btn btn-ghost" href="https://github.com/Talkdedsec/tlk-visual" data-tr="GitHub&#x27;da kaynak kodu">Source on GitHub</a>
-    <small>GPL-3.0 · Windows 10 / 11 · x64</small>
+<nav class="top" aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Talkdedsec Visual">
+      <span class="mark" aria-hidden="true"><span><i></i><i></i></span></span>
+      <b>TALKDEDSEC VISUAL</b>
+    </a>
+    <button class="menu" type="button" aria-expanded="false" aria-controls="links">
+      <span class="sr" data-tr="Menü">Menu</span>
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+    <div class="links" id="links">
+      <a href="#features" data-tr="Özellikler">Features</a>
+      <a href="#try" data-tr="Dene">Try it</a>
+      <a href="#how" data-tr="Nasıl çalışıyor">How it works</a>
+      <a href="#install" data-tr="Kurulum">Install</a>
+      <a href="#faq" data-tr="SSS">FAQ</a>
+    </div>
+    <button class="lang" type="button" hidden></button>
+    <a class="btn btn-main nav-cta" href="https://github.com/Talkdedsec/tlk-visual/releases/latest" data-download data-tr="İndir">Download</a>
   </div>
+</nav>
+
+<main id="main">
+<div class="wrap" id="top">
+
+<!-- ======================================================================= -->
+<header class="hero">
+  <div>
+    <div class="eyebrow">Talkdedsec · Windows 10 / 11</div>
+    <h1 data-tr="Ekranını &lt;em&gt;düzelt&lt;/em&gt;.&lt;br&gt;Oyuna dokunmadan.">Your screen, <em>corrected</em>.<br>Without touching the game.</h1>
+    <p class="lede" data-tr="Beş slider — parlaklık, kontrast, gama, renk sıcaklığı ve gece görüşü — tek bir gama tablosuna derlenip doğrudan ekran kartına yazılıyor. Oyunlar, video, masaüstü: panelin gösterdiği her şey oradan geçiyor ve kare süresine tek bir milisaniye eklenmiyor.">Five sliders — brightness, contrast, gamma, temperature and night vision — compiled
+      into a gamma ramp and written straight to the display adapter. Games, video, the desktop: everything
+      the panel shows goes through it, and not one millisecond is added to a frame.</p>
+    <ul class="facts">
+      <li data-tr="tek exe">one exe</li>
+      <li data-tr="kurulum yok">no installer</li>
+      <li data-tr="enjeksiyon yok">no injection</li>
+      <li data-tr="sürücü yok">no driver</li>
+      <li data-tr="yönetici yetkisi yok">no admin rights</li>
+      <li data-tr="kare başına 0 maliyet">0 frame cost</li>
+      <li data-tr="İngilizce + Türkçe">English + Türkçe</li>
+    </ul>
+    <div class="cta">
+      <a class="btn btn-main" href="https://github.com/Talkdedsec/tlk-visual/releases/latest" data-download>
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5v9M4 7l4 4 4-4M2.5 14h11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-tr="Windows için indir">Download for Windows</span>
+      </a>
+      <a class="btn btn-ghost" href="#try" data-tr="Tarayıcıda dene">Try it in the browser</a>
+      <a class="btn btn-ghost" href="https://github.com/Talkdedsec/tlk-visual">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.88.87 2.34.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>
+        <span data-tr="Kaynak kodu">Source code</span>
+      </a>
+    </div>
+    <p class="release" id="release" aria-live="polite"></p>
+  </div>
+
+  <figure class="shot">
+    <img src="screenshot.png" data-tr-src="screenshot.tr.png" width="1625" height="1035"
+         alt="The Talkdedsec Visual panel with the Night Vision preset active: presets on the left, three control cards and a before/after preview in the centre, and on the right the drawn transfer curve with Windows having allowed 85% strength."
+         data-tr-alt="Gece Görüşü preseti etkin Talkdedsec Visual paneli: solda presetler, ortada üç kontrol kartı ve önce/sonra önizlemesi, sağda çizilmiş transfer eğrisi ve Windows'un izin verdiği %85 güç.">
+    <figcaption data-tr="Gerçek bir makineden: Windows Gece Görüşü'nü tam güçte kabul etmedi. Motor ayarı %85'e çekti ve sağdaki GÜÇ kutucuğu bunu turuncuyla söylüyor — sessizce yarım iş yapmak yerine.">From a real machine: Windows would not take Night Vision at full strength. The engine
+      walked it down to 85%, and the STRENGTH figure on the right says so in amber — instead of quietly doing half the job.</figcaption>
+  </figure>
 </header>
 
-<figure class="shot">
-  <img src="screenshot.png" data-tr-src="screenshot.tr.png" alt="The Talkdedsec Visual panel: preset rail on the left, three control cards in the centre, a live before/after preview underneath, and the profile rail with the transfer curve on the right." data-tr-alt="Talkdedsec Visual paneli: solda preset rayı, ortada üç kontrol kartı, altta canlı önce/sonra önizlemesi, sağda transfer eğrisiyle profil rayı.">
-  <figcaption data-tr="Preset küçük resimleri, aynı sahnenin her presetin gerçek eğrisinden geçirilmiş hali — kartta gördüğün, presetin yaptığı şey. Alttaki önizlemede sürüklenebilir bir önce/sonra bölmesi var.">Preset thumbnails are the same scene pushed through each preset's actual curve — the
-    card shows you what the preset does. The preview underneath has a draggable before/after split.</figcaption>
-</figure>
+<!-- ======================================================================= -->
+<section id="features" aria-labelledby="features-h">
+  <div class="kicker" data-tr="Özellikler">Features</div>
+  <h2 id="features-h" data-tr="Küçük bir araç, ağır bir iş">A small tool doing a heavy job</h2>
+  <p class="intro" data-tr="Gama tablosu, monitör kalibrasyon profilinin çevirdiği düğmenin aynısı. Talkdedsec Visual o düğmeyi bir panele bağlıyor ve onu Windows'un, oyunların ve diğer araçların gerçekte nasıl davrandığına karşı ayakta tutuyor.">The gamma ramp is the same knob a monitor calibration profile turns. Talkdedsec Visual
+    puts a panel on that knob — and keeps it standing up to how Windows, games and other tools actually behave.</p>
 
-<section>
-  <h2 data-tr="Bu bir oyun modu değil">It is not a game mod</h2>
-  <p data-tr="Oyun klasörüne hiçbir şey kopyalanmıyor, hiçbir sürece bağlanılmıyor, kütüphane enjekte edilmiyor, sürücü kurulmuyor. Gama tablosu, monitör kalibrasyon profilinin çevirdiği düğmenin aynısı; yönetici yetkisi istememesinin ve kare süresinde tam olarak sıfır maliyeti olmasının sebebi de bu: düzeltme oyunun içinde değil, ekran hattında oluyor.">Nothing is copied into a game folder, no process is opened, no library is injected and no driver
-     is installed. The ramp is the same knob a monitor calibration profile turns, which is why it
-     needs no administrator rights and costs exactly zero frame time — the correction happens in the
-     display pipeline, not in your game.</p>
   <div class="grid">
-    <div class="card">
-      <h3 data-tr="Sınırları konusunda dürüst">Honest about its limits</h3>
-      <p data-tr="Doygunluk ve renk tonu bilerek yok. Gama tablosu kanal başına tek bir eğridir ve kanalları karıştıramaz; bu yoldan dürüst bir uygulaması yok. İşe yaramayan bir slider, hiç olmayanından daha kötü.">Saturation and hue are deliberately absent. A gamma ramp is one curve per channel and cannot
-         mix channels, so no honest implementation exists on this path. A dead slider is worse than a
-         missing one.</p>
+    <article class="card">
+      <div class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M3 10h14M10 3v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+      <h3 data-tr="Oyun modu değil">Not a game mod</h3>
+      <p data-tr="Oyun klasörüne hiçbir şey kopyalanmıyor, hiçbir sürece bağlanılmıyor, kütüphane enjekte edilmiyor, sürücü kurulmuyor. Düzeltme oyunun içinde değil, ekran hattında oluyor.">Nothing is copied into a game folder, no process is opened, no library is injected, no
+        driver is installed. The correction happens in the display pipeline, not in your game.</p>
+    </article>
+    <article class="card">
+      <div class="icon a" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M4 16V4M8 16V7M12 16v-6M16 16v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      <h3 data-tr="Windows hayır dediğinde söylüyor">Tells you when Windows says no</h3>
+      <p data-tr="Windows doğrusaldan çok uzaklaşan tabloları reddeder. Motor hata vermek yerine ayarı kademe kademe düşürüyor ve ne kadarının geçtiğini kalıcı bir rakamla gösteriyor.">Windows rejects ramps that stray too far from linear. Rather than fail, the engine walks
+        the setting down and shows how much survived as a figure that stays on screen.</p>
+    </article>
+    <article class="card">
+      <span class="tag" data-tr="YENİ">NEW</span>
+      <div class="icon g" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M15.5 7.5A6 6 0 1 0 16 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 3.5v4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h3 data-tr="Efekti bırakmıyor">Holds on</h3>
+      <p data-tr="Exclusive fullscreen'e giren oyun, uykudan uyanan ekran, çözünürlük değişikliği tabloyu sıfırlar. Motor saniyede bir bakıp geri koyuyor; başka bir araç kavga ediyorsa titretmek yerine kenara çekiliyor.">A game entering exclusive fullscreen, a panel waking up, a resolution change all reset the
+        ramp. The engine looks once a second and puts it back — and steps aside rather than flicker if another tool keeps fighting.</p>
+    </article>
+    <article class="card">
+      <span class="tag" data-tr="YENİ">NEW</span>
+      <div class="icon v" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><rect x="2.5" y="4" width="9" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="11" y="8" width="6.5" height="5.5" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M5 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+      <h3 data-tr="Hangi ekran, sen seçersin">You pick the displays</h3>
+      <p data-tr="Her ekran kendi EDID'sinde yazan adla listeleniyor. İkinci ekranı ya da televizyonu dışarıda bırak; seçim port numarasını değil paneli izliyor, sonradan takılan ekran bir saniyede yakalanıyor.">Every display is listed by the name in its own EDID. Leave the second screen or the TV out;
+        the choice follows the panel, not the port, and a display plugged in later is picked up within a second.</p>
+    </article>
+    <article class="card">
+      <div class="icon m" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M3 17C6 17 8 3 17 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 17 17 3" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2" opacity=".55"/></svg></div>
+      <h3 data-tr="Gördüğün eğri, yazılan eğri">The curve you see is the curve it writes</h3>
+      <p data-tr="Transfer eğrisi canlı çiziliyor: kanallar aynıyken tek çizgi, renk sıcaklığı ayırınca kırmızı, yeşil, mavi. Preset küçük resimleri de aynı sahnenin o presetin gerçek eğrisinden geçirilmiş hali.">The transfer curve is drawn live — one line while the channels agree, red, green and blue
+        once temperature parts them. Preset thumbnails are the same scene pushed through each preset's real curve.</p>
+    </article>
+    <article class="card">
+      <span class="tag" data-tr="YENİ">NEW</span>
+      <div class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2.5 3.5 5v5c0 4 2.8 6.5 6.5 7.5 3.7-1 6.5-3.5 6.5-7.5V5L10 2.5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m7 10 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h3 data-tr="Ekranı geri veriyor — her durumda">Gives the screen back — every time</h3>
+      <p data-tr="Gama tabloları onları yazan süreçten uzun yaşar. Her ekranın orijinali açılışta saklanıp çıkışta geri yazılıyor; program çökerse geride kalan tablo bir sonraki açılışta tanınıp temizleniyor.">Gamma ramps outlive the process that wrote them. Each display's original is kept at startup
+        and written back on exit — and if the program ever dies, the ramp it left is recognised and cleared at the next start.</p>
+    </article>
+    <article class="card">
+      <div class="icon v" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><rect x="2.5" y="6" width="15" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M6 10.5h2M10 10.5h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+      <h3 data-tr="Oyundan çıkmadan">Without leaving the game</h3>
+      <p data-tr="Tepside yaşıyor; F6–F12 arasından seçtiğin global kısayol efekti açıp kapatıyor. Tuş başka bir programdaysa sessizce başarısız olmak yerine söylüyor.">It lives in the tray, and a global hotkey from F6 to F12 toggles the effect. If another
+        program already owns the key, the panel says so instead of failing silently.</p>
+    </article>
+    <article class="card">
+      <div class="icon g" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M5 3.5h7l3 3v10H5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 10h4M8 13h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+      <h3 data-tr="Profiller, taşınabilir">Profiles that travel</h3>
+      <p data-tr="Ayarları isimlendir, düz JSON olarak dışa aktar, başka makinede içe aktar. Aşağıdaki deneme alanında tasarladığın ayar da aynı biçimde iniyor.">Name a setting, export it as plain JSON, import it on another machine. A setting you design
+        in the playground below downloads in exactly that format.</p>
+    </article>
+    <article class="card">
+      <span class="tag" data-tr="YENİ">NEW</span>
+      <div class="icon a" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="5" r="2" fill="currentColor"/><path d="M4 8.5h12M10 8.5v4m0 0-3 5m3-5 3 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h3 data-tr="Herkes için">For everyone</h3>
+      <p data-tr="Her kontrolün ekran okuyucular için adı ve rolü var; sliderlar değerini ve aralığını söylüyor. Panel, tepsi menüsü ve tüm mesajlar İngilizce ve Türkçe.">Every control carries a name and a role for screen readers; sliders report their value and
+        range. The panel, the tray menu and every message come in English and Turkish.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ======================================================================= -->
+<section id="try" aria-labelledby="try-h">
+  <div class="kicker" data-tr="Dene">Try it</div>
+  <h2 id="try-h" data-tr="Aynı matematik, tarayıcında">The same maths, in your browser</h2>
+  <p class="intro" data-tr="Aşağıdaki sahne, uygulamanın önizlemesiyle aynı şekilde üretiliyor ve aynı transfer eğrisinden geçiyor — kod &lt;code&gt;src/color.rs&lt;/code&gt;'den satır satır taşındı. Burada tasarladığın ayarı profil olarak indirip uygulamada &lt;strong&gt;İçe aktar&lt;/strong&gt; ile açabilirsin.">The scene below is generated the way the app's preview is, and pushed through the same
+    transfer curve — the code is ported line for line from <code>src/color.rs</code>. Download what you design here as a
+    profile and open it in the app with <strong>Import</strong>.</p>
+
+  <div class="lab">
+    <div class="stage-card">
+      <div class="stage" id="stage" style="--split:46%">
+        <canvas id="after" width="1040" height="362" aria-hidden="true"></canvas>
+        <canvas id="before" class="before" width="1040" height="362" aria-hidden="true"></canvas>
+        <div class="rule"></div>
+        <div class="knob" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M6 4 2 8l4 4M10 4l4 4-4 4" fill="none" stroke="#0a0a0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span class="badge l" data-tr="ÖNCE">BEFORE</span>
+        <span class="badge r" data-tr="SONRA">AFTER</span>
+        <input type="range" id="split" min="0" max="100" value="46" step="0.5" aria-label="Before / after split">
+      </div>
+      <div class="stage-bar">
+        <div class="presets" id="presets" role="group" aria-label="Presets"></div>
+        <button class="btn btn-ghost btn-sm hold" type="button" id="hold" data-tr="basılı tut: orijinal">hold to compare</button>
+      </div>
+      <div class="lab-foot">
+        <div class="curve">
+          <svg viewBox="-6 -6 267 267" role="img" id="curve" aria-label="Transfer curve">
+            <g stroke="#17171b" stroke-width="1">
+              <path d="M63.75 0V255M127.5 0V255M191.25 0V255M0 63.75H255M0 127.5H255M0 191.25H255"/>
+            </g>
+            <path d="M0 255 255 0" stroke="#55555e" stroke-width="1" opacity=".7"/>
+            <path id="c-b" fill="none" stroke="#5b8cff" stroke-width="2.2" stroke-linejoin="round"/>
+            <path id="c-g" fill="none" stroke="#5fd97a" stroke-width="2.2" stroke-linejoin="round"/>
+            <path id="c-r" fill="none" stroke="#ff6161" stroke-width="2.2" stroke-linejoin="round"/>
+            <path id="c-m" fill="none" stroke="#a3e60b" stroke-width="2.4" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="lab-side">
+          <h3 data-tr="Transfer eğrisi">Transfer curve</h3>
+          <p class="lab-note" data-tr="Altta giriş, yanda çıkış. Köşegen, dokunulmamış ekran; renk sıcaklığı kanalları ayırınca eğri kırmızı, yeşil ve maviye bölünüyor.">Input along the bottom, output up the side. The diagonal is the display left alone; once
+            temperature parts the channels the line splits into red, green and blue.</p>
+          <div class="lab-actions">
+            <button class="btn btn-main btn-sm" type="button" id="export" data-tr="Profil olarak indir">Download as profile</button>
+            <button class="btn btn-ghost btn-sm" type="button" id="share" data-tr="Bağlantıyı kopyala">Copy link</button>
+            <button class="btn btn-ghost btn-sm" type="button" id="reset" data-tr="Sıfırla">Reset</button>
+          </div>
+          <p class="lab-note" data-tr="Çift tık bir slideri nötre döndürür. Gerçek ekranda Windows güçlü ayarları kırpabilir; uygulama ne kadarını geçirdiğini söyler.">Double-click a slider to put it back on neutral. On a real screen Windows may clamp strong
+            settings; the app tells you how much got through.</p>
+        </div>
+      </div>
     </div>
-    <div class="card">
-      <h3 data-tr="Ekranı geri veriyor">It gives the screen back</h3>
-      <p data-tr="Gama tabloları, onları ayarlayan süreç kapandıktan sonra da kalır. Her ekranın orijinal tablosu açılışta okunup çıkışta geri yazılıyor — pencere tepsiye indiğinde ya da efekt kapatıldığında da.">Gamma ramps outlive the process that set them. Every display's original ramp is read at
-         startup and put back on exit — also when the window goes to the tray, or the effect is
-         switched off.</p>
-    </div>
-    <div class="card">
-      <h3 data-tr="Windows reddettiğinde söylüyor">It tells you when Windows says no</h3>
-      <p data-tr="Windows, doğrusaldan çok uzaklaşan tabloları reddeder. Motor hata vermek yerine ayarı kademe kademe düşürüyor — %100, %85, %70 — sürücü birini kabul edene kadar; sonra ayarın ne kadarının uygulanabildiğini durum çubuğunda söylüyor.">Windows rejects ramps that stray too far from linear. Rather than fail, the engine walks the
-         setting down — 100%, 85%, 70% — until the driver accepts one, then says in the status bar how
-         much survived.</p>
+
+    <div class="knobs">
+      <div id="controls"></div>
     </div>
   </div>
 </section>
 
-<section>
-  <h2 data-tr="Kontroller">The controls</h2>
-  <table>
-    <thead><tr><th data-tr="Kontrol">Control</th><th data-tr="Aralık">Range</th><th data-tr="Nötr">Neutral</th><th data-tr="Ne yapıyor">What it does</th></tr></thead>
-    <tbody>
-      <tr><td data-tr="Parlaklık">Brightness</td><td data-tr="−0,35 … +0,35">−0.35 … +0.35</td><td data-tr="0,00">0.00</td><td data-tr="Tüm eğriyi yukarı ya da aşağı kaydırıyor">Shifts the whole curve up or down</td></tr>
-      <tr><td data-tr="Kontrast">Contrast</td><td data-tr="0,60 … 1,80">0.60 … 1.80</td><td data-tr="1,00">1.00</td><td data-tr="Orta griyi merkez alıp gölge ile ışık arasını açıyor">Opens the gap between shadow and highlight, pivoting on mid grey</td></tr>
-      <tr><td data-tr="Gama">Gamma</td><td data-tr="0,50 … 2,20">0.50 … 2.20</td><td data-tr="1,00">1.00</td><td data-tr="İki uç sabit kalırken orta tonların ağırlığını değiştiriyor">Reweights the midtones while both ends stay pinned</td></tr>
-      <tr><td data-tr="Renk sıcaklığı">Temperature</td><td data-tr="−1,00 … +1,00">−1.00 … +1.00</td><td data-tr="0,00">0.00</td><td data-tr="Kırmızıyı maviden ayırarak sıcak ya da soğuk yapıyor">Warm or cool, by separating red from blue</td></tr>
-      <tr><td data-tr="Gece görüşü">Night vision</td><td data-tr="0,00 … 1,00">0.00 … 1.00</td><td data-tr="0,00">0.00</td><td data-tr="Işıkları soldurmadan gölgedeki ayrıntıyı siyahın içinden çıkarıyor">Lifts shadow detail out of the black without washing out highlights</td></tr>
-    </tbody>
-  </table>
-  <p class="note" data-tr="Her değer kutusu düzenlenebilir — &lt;code&gt;1.35&lt;/code&gt; yaz, &lt;kbd&gt;Enter&lt;/kbd&gt;&#x27;a bas. Sliderlar klavyeyle de çalışıyor: &lt;kbd&gt;←&lt;/kbd&gt; &lt;kbd&gt;→&lt;/kbd&gt; aralığın yüzde biri kadar kaydırıyor, &lt;kbd&gt;Home&lt;/kbd&gt; ve &lt;kbd&gt;End&lt;/kbd&gt; uçlara götürüyor.">Every value box is editable — type <code>1.35</code>, press <kbd>Enter</kbd>.
-    Sliders take the keyboard too: <kbd>←</kbd> <kbd>→</kbd> move by a hundredth of the range,
-    <kbd>Home</kbd> and <kbd>End</kbd> pin the ends.</p>
-</section>
+<!-- ======================================================================= -->
+<section id="how" aria-labelledby="how-h">
+  <div class="kicker" data-tr="Nasıl çalışıyor">How it works</div>
+  <h2 id="how-h" data-tr="Bir piksele ne oluyor">What happens to a pixel</h2>
+  <p class="intro" data-tr="256 giriş seviyesinin her biri sabit bir sırayla beş aşamadan geçiyor. Sonuç, kanal başına 256 girişlik bir tablo; seçtiğin her ekrana &lt;code&gt;SetDeviceGammaRamp&lt;/code&gt; ile gidiyor ve ekran kartının kendi donanımında uygulanıyor.">Each of the 256 input levels goes through five stages in a fixed order. The result is a
+    256-entry table per channel, handed to <code>SetDeviceGammaRamp</code> on every display you selected and applied by the
+    display adapter's own hardware.</p>
 
-<section>
-  <h2 data-tr="Bir piksele ne oluyor">What happens to a pixel</h2>
-  <p data-tr="256 giriş seviyesinin her biri sabit bir sırayla beş aşamadan geçiyor. Sonuç, kanal başına 256 girişlik bir tablo; bu tablo bağlı her ekrana &lt;code&gt;SetDeviceGammaRamp&lt;/code&gt; ile gidiyor.">Each of the 256 input levels is pushed through five stages in a fixed order, producing a
-     256-entry table per channel that goes to <code>SetDeviceGammaRamp</code> on every attached
-     display.</p>
-  <div class="pipe" data-tr="gece görüşü → gama → kontrast → parlaklık → renk sıcaklığı">night vision → gamma → contrast → brightness → temperature</div>
-  <p class="note" data-tr="Matematiği umut değil birim testleri ayakta tutuyor: nötr ayar birim tabloyu &lt;strong&gt;tam olarak&lt;/strong&gt; üretmeli, her eğri monoton kalmalı, kontrast orta griyi merkez almalı, gama siyaha ve beyaza dokunmamalı, gece görüşü de gölgeleri ışıklardan en az on kat fazla kaldırmalı.">The maths is held down by unit tests, not by hope: the neutral setting must
-    reproduce the identity ramp <strong>exactly</strong>, every curve must stay monotonic, contrast
-    must pivot on mid grey, gamma must leave black and white untouched, and night vision must lift
-    shadows at least ten times more than highlights.</p>
-</section>
-
-<section>
-  <h2 data-tr="Kurulum">Install</h2>
-  <div class="install">
-    <div>
-      <h3>Scoop</h3>
-      <pre><code><span class="cmd">scoop bucket add tlk https://github.com/Talkdedsec/scoop-tlk
-scoop install tlk/tlk-visual</span></code></pre>
+  <div class="pipe">
+    <div class="stage-step">
+      <h3 data-tr="Gece görüşü">Night vision</h3>
+      <p data-tr="Gölgeyi siyahın içinden kaldırır, ışıklara neredeyse dokunmaz.">Lifts shadow out of the black, barely touches highlights.</p>
+      <code>x += n·0.45·(1−x)^2.2</code>
     </div>
-    <div>
-      <h3 data-tr="Ya da sadece exe">Or just the exe</h3>
-      <pre><code><span class="cmd" data-tr="talkdedsec-visual.exe dosyasını
-Releases sayfasından indirip çalıştır.">Download talkdedsec-visual.exe
-from the Releases page and run it.</span></code></pre>
+    <div class="stage-step">
+      <h3 data-tr="Gama">Gamma</h3>
+      <p data-tr="Uçlar sabit, orta tonlar yeniden ağırlıklanır.">Ends pinned, midtones reweighted.</p>
+      <code>x = x^(1/γ)</code>
+    </div>
+    <div class="stage-step">
+      <h3 data-tr="Kontrast">Contrast</h3>
+      <p data-tr="Orta gri merkezde, gölge ile ışık açılır.">Pivots on mid grey, opens shadow from highlight.</p>
+      <code>x = (x − ½)·c + ½</code>
+    </div>
+    <div class="stage-step">
+      <h3 data-tr="Parlaklık">Brightness</h3>
+      <p data-tr="Bütün eğriyi yukarı ya da aşağı kaydırır.">Shifts the whole curve up or down.</p>
+      <code>x += b</code>
+    </div>
+    <div class="stage-step">
+      <h3 data-tr="Renk sıcaklığı">Temperature</h3>
+      <p data-tr="Kırmızıyı maviden ayırır; yeşil hafifçe izler.">Separates red from blue; green follows lightly.</p>
+      <code>R·(1+.22t) G·(1−.0132|t|) B·(1−.22t)</code>
     </div>
   </div>
-  <p class="note" style="border-color:var(--accent)" data-tr="&lt;strong&gt;SmartScreen ilk seferde uyaracak.&lt;/strong&gt; Exe henüz kod imzalı değil. Her sürümle bir SHA-256 dosyası geliyor; v0.1.0&#x27;dan sonraki her sürümde ayrıca kendin doğrulayabileceğin bir GitHub build attestation&#x27;ı var:"><strong>SmartScreen will warn you the first
-    time.</strong> The binary is not code-signed yet. Every release ships a SHA-256 file, and every
-    release after v0.1.0 carries a GitHub build attestation you can check yourself:</p>
-  <pre><code><span class="cmd">gh attestation verify talkdedsec-visual.exe --owner Talkdedsec</span></code></pre>
-  <p style="margin-top:14px" data-tr="Windows 10 ya da 11, 64-bit. Tek dosya — kurulum yok, .NET yok, WebView2 yok, hiçbir çalışma zamanı yok. Ayarlar ve profiller &lt;code&gt;%APPDATA%&lt;/code&gt; altında tek bir dosyada duruyor.">Windows 10 or 11, 64-bit. One file — no installer, no .NET, no WebView2,
-     no runtime of any kind. Settings and profiles live in a single file under
-     <code>%APPDATA%</code>.</p>
+
+  <div class="twin">
+    <div class="card">
+      <h3 data-tr="Windows hayır dediğinde">When Windows says no</h3>
+      <p data-tr="&lt;code&gt;GdiIcmGammaRange&lt;/code&gt; açılmadıkça Windows doğrusaldan uzak tabloları reddediyor; onu açmak yönetici yetkisi ve oturum kapatma istiyor. Motor hata vermek yerine merdivenden iniyor ve sürücünün kabul ettiği ilk basamakta duruyor:">Unless <code>GdiIcmGammaRange</code> is widened — which takes administrator rights and a sign-out —
+        Windows rejects ramps far from linear. Rather than fail, the engine walks down a ladder and stops at the first step the driver takes:</p>
+      <div class="ladder" aria-hidden="true">
+        <div class="rung no"><span>100%</span><span class="bar"><i style="width:100%"></i></span><span data-tr="reddedildi">refused</span></div>
+        <div class="rung ok"><span>85%</span><span class="bar"><i style="width:85%"></i></span><span data-tr="kabul ✓">accepted ✓</span></div>
+        <div class="rung"><span>70%</span><span class="bar"><i style="width:70%"></i></span><span></span></div>
+        <div class="rung"><span>55%</span><span class="bar"><i style="width:55%"></i></span><span></span></div>
+        <div class="rung"><span>40%</span><span class="bar"><i style="width:40%"></i></span><span></span></div>
+        <div class="rung"><span>25%</span><span class="bar"><i style="width:25%"></i></span><span></span></div>
+        <div class="rung"><span>12%</span><span class="bar"><i style="width:12%"></i></span><span></span></div>
+      </div>
+      <p style="margin-top:14px" data-tr="Bu örnek, en üstteki ekran görüntüsünün çekildiği makineden: Gece Görüşü %85'te kabul edildi.">This example is the machine the screenshot above came from: Night Vision was taken at 85%.</p>
+    </div>
+    <div class="card">
+      <h3 data-tr="Efekt neden kendiliğinden geri geliyor">Why the effect comes back on its own</h3>
+      <p data-tr="Motor her ekranın tablosunu saniyede bir okuyor ve en son yazdığıyla karşılaştırıyor:">The engine reads each display's ramp once a second and compares it with what it last wrote:</p>
+      <ol class="timeline">
+        <li><b>0.0 s</b><span data-tr="Oyun exclusive fullscreen'e giriyor, Windows tabloyu sıfırlıyor.">A game enters exclusive fullscreen; Windows resets the ramp.</span></li>
+        <li><b>≤ 1 s</b><span data-tr="Motor farkı görüyor ve efekti yeniden yazıyor. Durum çubuğu: &quot;Ekran sıfırlanmıştı — yeniden uygulandı.&quot;">The engine sees the difference and writes the effect again. Status: “The display was reset — applied again.”</span></li>
+        <li class="warn"><b>5× / 20 s</b><span data-tr="Tablo durmadan değişiyorsa başka bir şey ekran için kavga ediyordur. Motor o ekranda kenara çekiliyor, GÜÇ kutucuğu &quot;Durdu&quot; diyor; herhangi bir ayarı değiştirmek ekranı geri alıyor.">If the ramp keeps changing, something is fighting for the display. The engine steps aside there and STRENGTH reads “Paused”; changing any setting takes it back.</span></li>
+      </ol>
+    </div>
+  </div>
 </section>
 
-<footer>
-  <span>Talkdedsec Visual · GPL-3.0-or-later</span>
-  <span class="sep">·</span>
-  <a href="https://github.com/Talkdedsec/tlk-visual">GitHub</a>
-  <span class="sep">·</span>
-  <a href="https://github.com/Talkdedsec/tlk-visual/releases" data-tr="Sürümler">Releases</a>
-  <span class="sep">·</span>
-  <a href="https://github.com/Talkdedsec/tlk-visual/issues" data-tr="Hata bildir">Report a bug</a>
-  <span class="sep">·</span>
-  <a href="https://talkdedsec.com">talkdedsec.com</a>
-</footer>
+<!-- ======================================================================= -->
+<section id="controls-table" aria-labelledby="ct-h">
+  <div class="kicker" data-tr="Kontroller">Controls</div>
+  <h2 id="ct-h" data-tr="Beş kontrol, motorla aynı sınırlar">Five controls, the engine's own limits</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th data-tr="Kontrol">Control</th><th data-tr="Aralık">Range</th><th data-tr="Nötr">Neutral</th><th data-tr="Ne yapıyor">What it does</th></tr></thead>
+      <tbody>
+        <tr><td data-tr="Parlaklık">Brightness</td><td class="num" data-tr="−0,35 … +0,35">−0.35 … +0.35</td><td class="num" data-tr="0,00">0.00</td><td data-tr="Tüm eğriyi yukarı ya da aşağı kaydırıyor">Shifts the whole curve up or down</td></tr>
+        <tr><td data-tr="Kontrast">Contrast</td><td class="num" data-tr="0,60 … 1,80">0.60 … 1.80</td><td class="num" data-tr="1,00">1.00</td><td data-tr="Orta griyi merkez alıp gölge ile ışık arasını açıyor">Opens the gap between shadow and highlight, pivoting on mid grey</td></tr>
+        <tr><td data-tr="Gama">Gamma</td><td class="num" data-tr="0,50 … 2,20">0.50 … 2.20</td><td class="num" data-tr="1,00">1.00</td><td data-tr="İki uç sabit kalırken orta tonların ağırlığını değiştiriyor">Reweights the midtones while both ends stay pinned</td></tr>
+        <tr><td data-tr="Renk sıcaklığı">Temperature</td><td class="num" data-tr="−1,00 … +1,00">−1.00 … +1.00</td><td class="num" data-tr="0,00">0.00</td><td data-tr="Kırmızıyı maviden ayırarak sıcak ya da soğuk yapıyor">Warm or cool, by separating red from blue</td></tr>
+        <tr><td data-tr="Gece görüşü">Night vision</td><td class="num" data-tr="0,00 … 1,00">0.00 … 1.00</td><td class="num" data-tr="0,00">0.00</td><td data-tr="Işıkları soldurmadan gölgedeki ayrıntıyı siyahın içinden çıkarıyor">Lifts shadow detail out of the black without washing out highlights</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="intro" style="margin-top:18px" data-tr="Her değer kutusu yazılabilir. Sliderlar klavyeyi (&lt;kbd&gt;←&lt;/kbd&gt; &lt;kbd&gt;→&lt;/kbd&gt; &lt;kbd&gt;Home&lt;/kbd&gt; &lt;kbd&gt;End&lt;/kbd&gt;) ve fare tekerleğini dinliyor; çift tık nötre döndürüyor. Doygunluk ve renk tonu bilerek yok: gama tablosu kanal başına tek eğri, kanalları karıştıramıyor — işe yaramayan bir slider, hiç olmayanından kötü.">Every value box is editable. Sliders take the keyboard (<kbd>←</kbd> <kbd>→</kbd> <kbd>Home</kbd>
+    <kbd>End</kbd>) and the mouse wheel, and a double-click puts one back on neutral. Saturation and hue are deliberately
+    absent: a gamma ramp is one curve per channel and cannot mix channels — a dead slider is worse than a missing one.</p>
+</section>
+
+<!-- ======================================================================= -->
+<section id="limits" aria-labelledby="limits-h">
+  <div class="kicker" data-tr="Dürüst sınırlar">Honest limits</div>
+  <h2 id="limits-h" data-tr="Ne yapar, ne yapmaz">What it does, and what it does not</h2>
+  <div class="split">
+    <div class="card">
+      <h3 data-tr="Yapar">Does</h3>
+      <ul class="list">
+        <li class="yes"><span data-tr="&lt;strong&gt;Her pencereye uygulanır&lt;/strong&gt; — oyun, video, tarayıcı, masaüstü."><strong>Applies to every window</strong> — game, video, browser, desktop.</span></li>
+        <li class="yes"><span data-tr="&lt;strong&gt;Seçtiğin ekranlara&lt;/strong&gt; yazar; diğerlerine dokunmaz."><strong>Writes to the displays you select</strong>; leaves the rest alone.</span></li>
+        <li class="yes"><span data-tr="&lt;strong&gt;Sıfırlanınca geri gelir&lt;/strong&gt; — fullscreen, uyku, çözünürlük."><strong>Comes back when reset</strong> — fullscreen, sleep, resolution.</span></li>
+        <li class="yes"><span data-tr="&lt;strong&gt;Her çıkışta orijinali geri yazar&lt;/strong&gt;, çöküşten sonra bile."><strong>Writes the original back on every exit</strong>, even after a crash.</span></li>
+        <li class="yes"><span data-tr="&lt;strong&gt;Hiçbir şey göndermez.&lt;/strong&gt; Program tek bir soket bile açmıyor."><strong>Sends nothing.</strong> The program does not open a single socket.</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 data-tr="Yapmaz">Does not</h3>
+      <ul class="list">
+        <li class="no-"><span data-tr="&lt;strong&gt;Doygunluk ve renk tonu yok.&lt;/strong&gt; Gama tablosuyla dürüstçe mümkün değil."><strong>No saturation or hue.</strong> A gamma ramp cannot do them honestly.</span></li>
+        <li class="no-"><span data-tr="&lt;strong&gt;HDR&lt;/strong&gt; açıkken çoğu sürücü tabloyu yok sayıyor; bir şey olmuyorsa HDR'ı kapat."><strong>HDR</strong> makes most drivers ignore the ramp; turn it off if nothing happens.</span></li>
+        <li class="no-"><span data-tr="&lt;strong&gt;Tabloyu sürekli yeniden yazan oyunlar&lt;/strong&gt; kazanır; uygulama bunu söyler. Güvenilir mod kenarlıksız pencere."><strong>Games that keep rewriting the ramp</strong> win, and the app says so. Borderless windowed is the reliable mode.</span></li>
+        <li class="no-"><span data-tr="&lt;strong&gt;Ekran başına farklı ayar&lt;/strong&gt; henüz yok; seçili her ekran aynı eğriyi alır."><strong>Different settings per display</strong> are not there yet; every selected display gets the same curve.</span></li>
+        <li class="no-"><span data-tr="&lt;strong&gt;Kalibrasyon değil.&lt;/strong&gt; Farklı paneller aynı eğriyle aynı sonuca varmaz."><strong>Not a calibration.</strong> Different panels do not land on the same result from one curve.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================= -->
+<section id="install" aria-labelledby="install-h">
+  <div class="kicker" data-tr="Kurulum">Install</div>
+  <h2 id="install-h" data-tr="Bir dakikada hazır">Ready in a minute</h2>
+
+  <div class="tabs" role="tablist" aria-label="Install method">
+    <button class="tab" role="tab" id="tab-scoop" aria-controls="pane-scoop" aria-selected="true">Scoop</button>
+    <button class="tab" role="tab" id="tab-exe" aria-controls="pane-exe" aria-selected="false" tabindex="-1" data-tr="Exe dosyası">The exe</button>
+    <button class="tab" role="tab" id="tab-src" aria-controls="pane-src" aria-selected="false" tabindex="-1" data-tr="Kaynaktan">From source</button>
+  </div>
+
+  <div class="panel" role="tabpanel" id="pane-scoop" aria-labelledby="tab-scoop">
+    <p data-tr="&lt;a href=&quot;https://scoop.sh&quot;&gt;Scoop&lt;/a&gt; ile — güncellemeleri de kendisi getiriyor:">With <a href="https://scoop.sh">Scoop</a>, which also keeps it updated:</p>
+    <div class="code"><pre><code>scoop bucket add tlk https://github.com/Talkdedsec/scoop-tlk
+scoop install tlk/tlk-visual</code></pre><button class="copy" type="button" data-tr="Kopyala">Copy</button></div>
+    <p data-tr="Kaldırmak için: &lt;code&gt;scoop uninstall tlk-visual&lt;/code&gt;">To remove it: <code>scoop uninstall tlk-visual</code></p>
+  </div>
+
+  <div class="panel" role="tabpanel" id="pane-exe" aria-labelledby="tab-exe" hidden>
+    <p data-tr="&lt;code&gt;talkdedsec-visual.exe&lt;/code&gt; dosyasını &lt;a href=&quot;https://github.com/Talkdedsec/tlk-visual/releases/latest&quot;&gt;Releases&lt;/a&gt; sayfasından indir ve çalıştır. Tek dosya; kurulum yok, .NET yok, WebView2 yok, hiçbir çalışma zamanı yok.">Download <code>talkdedsec-visual.exe</code> from <a href="https://github.com/Talkdedsec/tlk-visual/releases/latest">Releases</a>
+      and run it. One file — no installer, no .NET, no WebView2, no runtime of any kind.</p>
+    <p data-tr="&lt;strong&gt;SmartScreen ilk seferde uyaracak&lt;/strong&gt;, çünkü exe henüz kod imzalı değil. &lt;strong&gt;Ek bilgi → Yine de çalıştır&lt;/strong&gt; demeden önce indirdiğini doğrula — her sürümün yanında bir SHA-256 dosyası ve kendin kontrol edebileceğin bir GitHub build attestation'ı var:"><strong>SmartScreen will warn you the first time</strong>, because the binary is not code-signed yet.
+      Before choosing <strong>More info → Run anyway</strong>, check what you downloaded — every release carries a SHA-256 file
+      and a GitHub build attestation you can verify yourself:</p>
+    <div class="code"><pre><code>Get-FileHash .\talkdedsec-visual.exe -Algorithm SHA256
+gh attestation verify talkdedsec-visual.exe --owner Talkdedsec</code></pre><button class="copy" type="button" data-tr="Kopyala">Copy</button></div>
+  </div>
+
+  <div class="panel" role="tabpanel" id="pane-src" aria-labelledby="tab-src" hidden>
+    <p data-tr="Tek gereksinim Rust 1.85 ya da üstü. C++ adımı yok, Python yok, &lt;code&gt;node_modules&lt;/code&gt; yok.">The only prerequisite is Rust 1.85 or newer. No C++ step, no Python, no <code>node_modules</code>.</p>
+    <div class="code"><pre><code>git clone https://github.com/Talkdedsec/tlk-visual
+cd tlk-visual
+cargo build --release</code></pre><button class="copy" type="button" data-tr="Kopyala">Copy</button></div>
+    <p data-tr="Çıktı &lt;code&gt;target/release/talkdedsec-visual.exe&lt;/code&gt;. &lt;code&gt;cargo test&lt;/code&gt; renk matematiğini, motoru (sahte bir sürücüyle), profilleri ve iki dilin eksiksiz olduğunu sınıyor.">The output is <code>target/release/talkdedsec-visual.exe</code>. <code>cargo test</code> holds down the colour maths,
+      the engine (against a fake driver), the profile store and that both languages are complete.</p>
+  </div>
+
+  <div class="reqs">
+    <div class="req"><b data-tr="Sistem">System</b><span data-tr="Windows 10 ya da 11, 64-bit">Windows 10 or 11, 64-bit</span></div>
+    <div class="req"><b data-tr="Ayarlar">Settings</b><span><code>%APPDATA%\Talkdedsec\Visual\config.json</code></span></div>
+    <div class="req"><b data-tr="Taşınabilir">Portable</b><span data-tr="&lt;code&gt;TALKDEDSEC_VISUAL_CONFIG&lt;/code&gt; ile kendi yolun"><code>TALKDEDSEC_VISUAL_CONFIG</code> to a path of your own</span></div>
+    <div class="req"><b data-tr="Lisans">Licence</b><span>GPL-3.0-or-later</span></div>
+  </div>
+</section>
+
+<!-- ======================================================================= -->
+<section id="faq" aria-labelledby="faq-h">
+  <div class="kicker" data-tr="SSS">FAQ</div>
+  <h2 id="faq-h" data-tr="Sık sorulanlar">Questions people ask</h2>
+  <div class="faq">
+    <details>
+      <summary data-tr="Anti-cheat sorun çıkarır mı?">Will anti-cheat mind?</summary>
+      <div><p data-tr="Program oyunun sürecine dokunmuyor: hiçbir şey açmıyor, okumuyor, enjekte etmiyor. Değişen, ekranın görüntüyle ne yaptığı — oyunun ne çizdiği değil. Ama bu bir söz değil: bazı rekabetçi oyunlar görünürlüğü artıran harici görsel ayarları yasaklıyor ve bu onların kararı. Oynadığın oyunun kurallarını oku ve kendin karar ver.">The program never touches the game's process — nothing is opened, read or injected. What changes
+        is what the display does with the image, not what the game draws. That is not a promise, though: some competitive titles
+        disallow external visual settings that improve visibility, and enforcement is their call. Read the rules of what you play and decide for yourself.</p></div>
+    </details>
+    <details>
+      <summary data-tr="FPS'e etkisi var mı?">Does it cost FPS?</summary>
+      <div><p data-tr="Hayır. Tablo ekran kartının çıkışındaki donanım tablosuna bir kez yazılıyor; her kare için yapılan bir işlem yok. Program arka planda saniyede bir sadece tabloyu okuyup karşılaştırıyor.">No. The table is written once into the lookup hardware at the adapter's output; nothing is done per
+        frame. In the background the program only reads the table back once a second to compare.</p></div>
+    </details>
+    <details>
+      <summary data-tr="Ekranımda hiçbir şey değişmiyor.">Nothing changes on my screen.</summary>
+      <div><p data-tr="Önce HDR'a bak: çoğu sürücü HDR açıkken gama tablosunu yok sayıyor. Sonra sağ alttaki GÜÇ kutucuğuna bak — &quot;Durdu&quot; yazıyorsa başka bir renk aracı ekran için kavga ediyordur; onu kapatıp bir ayarı değiştir. Son olarak ayarlarda o ekranın seçili olduğundan emin ol.">Check HDR first: most drivers ignore the ramp while HDR is on. Then look at the STRENGTH figure — if
+        it says “Paused”, another colour tool is fighting for the display; close it and change any setting. Finally, make sure that display is selected in settings.</p></div>
+    </details>
+    <details>
+      <summary data-tr="Neden %100 değil de %85 uygulandı?">Why was only 85% applied?</summary>
+      <div><p data-tr="Windows, &lt;code&gt;GdiIcmGammaRange&lt;/code&gt; kayıt değeri açılmadıkça doğrusaldan fazla uzaklaşan tabloları reddediyor. Program bunu senin yerine açmıyor — yönetici yetkisi ve oturum kapatma gerektiriyor. Onun yerine ayarı kabul edilene kadar düşürüyor ve ne kadarının geçtiğini söylüyor.">Windows refuses ramps far from linear unless the <code>GdiIcmGammaRange</code> registry value is widened.
+        The program does not do that behind your back — it needs administrator rights and a sign-out. Instead it walks the setting down until one is accepted and tells you how much got through.</p></div>
+    </details>
+    <details>
+      <summary data-tr="Birden fazla monitörüm var.">I have more than one monitor.</summary>
+      <div><p data-tr="Ayarlar → Ekranlar, her ekranı EDID adıyla listeliyor; 1 ana ekran. Dışarıda bıraktığın ekran orijinal tablosuna hemen dönüyor. Seçim panele bağlı, yeniden başlatmadan sağ çıkıyor; seçili her ekran aynı eğriyi alıyor.">Settings → Displays lists every display by its EDID name; number 1 is the main one. A display you
+        leave out gets its original ramp back at once. The choice is tied to the panel and survives a reboot; every selected display gets the same curve.</p></div>
+    </details>
+    <details>
+      <summary data-tr="Program çökerse ekranım renkli mi kalır?">If it crashes, does my screen stay tinted?</summary>
+      <div><p data-tr="Kısa bir süre, evet — gama tabloları onları yazan süreçten uzun yaşar. Programı yeniden açtığında geride kalan tablo kayıtlı ayarlarla eşleştiği için tanınıyor ve hemen temizleniyor; Windows'u yeniden başlatmak da ekranın kendi tablosunu geri getiriyor.">Briefly, yes — gamma ramps outlive the process that wrote them. Start the program again and the
+        leftover ramp is recognised, because it matches the saved settings, and cleared straight away. Restarting Windows also brings the display's own ramp back.</p></div>
+    </details>
+    <details>
+      <summary data-tr="Nasıl kaldırırım?">How do I uninstall it?</summary>
+      <div><p data-tr="Önce Ayarlar'dan &quot;Windows açılışında başlat&quot;ı kapat — kayıt değerini siliyor. Sonra exe'yi ve &lt;code&gt;%APPDATA%\Talkdedsec\Visual&lt;/code&gt; klasörünü sil. Başka hiçbir yere bir şey yazılmıyor. Scoop ile kurduysan: &lt;code&gt;scoop uninstall tlk-visual&lt;/code&gt;.">Turn off “Start with Windows” in settings first — it removes the registry value. Then delete the exe
+        and the <code>%APPDATA%\Talkdedsec\Visual</code> folder. Nothing else is written anywhere. With Scoop: <code>scoop uninstall tlk-visual</code>.</p></div>
+    </details>
+    <details>
+      <summary data-tr="İnternete bağlanıyor mu?">Does it phone home?</summary>
+      <div><p data-tr="Hayır. Program tek bir soket açmıyor; güncelleme kontrolü, telemetri, hesap yok. Bu sayfa da çerez kullanmıyor; sadece son sürüm numarasını göstermek için GitHub'ın API'sine soruyor.">No. The program opens no sockets at all — no update check, no telemetry, no account. This page sets no
+        cookies either; it only asks GitHub's API for the latest release number.</p></div>
+    </details>
+  </div>
+</section>
+
+<!-- ======================================================================= -->
+<div class="closing">
+  <h2 data-tr="Ekranını bir dakikada düzelt">Correct your screen in a minute</h2>
+  <p class="intro" style="margin:0 auto" data-tr="Ücretsiz, açık kaynak, tek dosya. Beğenmezsen silmek de o kadar kolay.">Free, open source, one file. Just as easy to delete if it is not for you.</p>
+  <div class="cta">
+    <a class="btn btn-main" href="https://github.com/Talkdedsec/tlk-visual/releases/latest" data-download data-tr="Windows için indir">Download for Windows</a>
+    <a class="btn btn-ghost" href="https://github.com/Talkdedsec/tlk-visual/issues" data-tr="Hata bildir ya da öner">Report a bug or suggest</a>
+  </div>
+</div>
 
 </div>
-<button class="lang-toggle" type="button" hidden></button>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <span>Talkdedsec Visual · GPL-3.0-or-later</span>
+      <a href="https://github.com/Talkdedsec/tlk-visual">GitHub</a>
+      <a href="https://github.com/Talkdedsec/tlk-visual/releases" data-tr="Sürümler">Releases</a>
+      <a href="https://github.com/Talkdedsec/tlk-visual/blob/main/CHANGELOG.md" data-tr="Değişiklikler">Changelog</a>
+      <a href="https://github.com/Talkdedsec/tlk-visual/blob/main/SECURITY.md" data-tr="Güvenlik">Security</a>
+      <a href="https://talkdedsec.com">talkdedsec.com</a>
+    </div>
+    <p data-tr="Bu sayfa çerez kullanmıyor ve izleyici yüklemiyor. Dil seçimin yalnızca tarayıcında saklanıyor.">This page sets no cookies and loads no trackers. Your language choice is kept in your browser only.</p>
+  </div>
+</footer>
+
 <script>
-// English is the page's source text; each translated element carries its
+"use strict";
+
+// ---------------------------------------------------------------------------
+// Language. English is the source text; translated elements carry their
 // Turkish in data-tr. Turkish browsers get Turkish until the visitor picks.
-(() => {
+// ---------------------------------------------------------------------------
+const Lang = (() => {
   const KEY = "tlk-visual.language";
   const root = document.documentElement;
   const nodes = [...document.querySelectorAll("[data-tr]")];
@@ -236,8 +740,12 @@ from the Releases page and run it.</span></code></pre>
   nodes.forEach((n) => (n.dataset.en = n.innerHTML));
   alts.forEach((n) => (n.dataset.enAlt = n.alt));
   srcs.forEach((n) => (n.dataset.enSrc = n.getAttribute("src")));
-  const toggle = document.querySelector(".lang-toggle");
+  const toggle = document.querySelector(".lang");
+  const listeners = [];
+  let current = "en";
+
   const apply = (lang) => {
+    current = lang;
     root.lang = lang;
     nodes.forEach((n) => (n.innerHTML = lang === "tr" ? n.dataset.tr : n.dataset.en));
     alts.forEach((n) => (n.alt = lang === "tr" ? n.dataset.trAlt : n.dataset.enAlt));
@@ -245,19 +753,438 @@ from the Releases page and run it.</span></code></pre>
     toggle.textContent = lang === "tr" ? "EN" : "TR";
     toggle.lang = lang === "tr" ? "en" : "tr";
     toggle.setAttribute("aria-label", lang === "tr" ? "Switch to English" : "Türkçeye geç");
+    listeners.forEach((f) => f(lang));
   };
+
   let lang = null;
   try { lang = localStorage.getItem(KEY); } catch {}
   if (lang !== "en" && lang !== "tr")
     lang = (navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en";
-  apply(lang);
+
   toggle.hidden = false;
   toggle.addEventListener("click", () => {
-    lang = lang === "tr" ? "en" : "tr";
-    try { localStorage.setItem(KEY, lang); } catch {}
-    apply(lang);
+    const next = current === "tr" ? "en" : "tr";
+    try { localStorage.setItem(KEY, next); } catch {}
+    apply(next);
+  });
+
+  return {
+    start: () => apply(lang),
+    get: () => current,
+    on: (f) => listeners.push(f),
+    t: (en, tr) => (current === "tr" ? tr : en),
+  };
+})();
+
+// ---------------------------------------------------------------------------
+// Navigation: mobile menu and the section being read.
+// ---------------------------------------------------------------------------
+(() => {
+  const menu = document.querySelector(".menu");
+  const links = document.getElementById("links");
+  menu.addEventListener("click", () => {
+    const open = links.classList.toggle("open");
+    menu.setAttribute("aria-expanded", String(open));
+  });
+  links.addEventListener("click", (e) => {
+    if (e.target.closest("a")) {
+      links.classList.remove("open");
+      menu.setAttribute("aria-expanded", "false");
+    }
+  });
+  if (!("IntersectionObserver" in window)) return;
+  const anchors = new Map([...links.querySelectorAll("a")].map((a) => [a.getAttribute("href").slice(1), a]));
+  const seen = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      const a = anchors.get(entry.target.id);
+      if (a && entry.isIntersecting) {
+        anchors.forEach((x) => x.removeAttribute("aria-current"));
+        a.setAttribute("aria-current", "true");
+      }
+    });
+  }, { rootMargin: "-45% 0px -50% 0px" });
+  anchors.forEach((_, id) => { const s = document.getElementById(id); if (s) seen.observe(s); });
+})();
+
+// ---------------------------------------------------------------------------
+// Install tabs (arrow keys move between them) and copy buttons.
+// ---------------------------------------------------------------------------
+(() => {
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  const select = (tab) => {
+    tabs.forEach((t) => {
+      const on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+    });
+    tab.focus();
+  };
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => select(tab));
+    tab.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") select(tabs[(i + 1) % tabs.length]);
+      if (e.key === "ArrowLeft") select(tabs[(i - 1 + tabs.length) % tabs.length]);
+    });
+  });
+
+  document.querySelectorAll(".copy").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const text = button.parentElement.querySelector("code").innerText;
+      try {
+        await navigator.clipboard.writeText(text);
+        button.textContent = Lang.t("Copied", "Kopyalandı");
+        button.classList.add("done");
+        setTimeout(() => {
+          button.textContent = Lang.t("Copy", "Kopyala");
+          button.classList.remove("done");
+        }, 1600);
+      } catch {}
+    });
   });
 })();
+
+// ---------------------------------------------------------------------------
+// Latest release from GitHub's API. If it does not answer, the links simply
+// keep pointing at the releases page.
+// ---------------------------------------------------------------------------
+(() => {
+  const line = document.getElementById("release");
+  let release = null;
+  const render = () => {
+    if (!release) return;
+    const lang = Lang.get();
+    const exe = (release.assets || []).find((a) => a.name.toLowerCase().endsWith(".exe"));
+    const date = new Date(release.published_at).toLocaleDateString(lang === "tr" ? "tr-TR" : "en-GB",
+      { day: "numeric", month: "long", year: "numeric" });
+    const parts = [`<b>${release.tag_name}</b>`, date];
+    if (exe) {
+      const mb = (exe.size / 1048576).toLocaleString(lang === "tr" ? "tr-TR" : "en-GB", { maximumFractionDigits: 1 });
+      parts.push(`${mb} MB`);
+      const n = exe.download_count.toLocaleString(lang === "tr" ? "tr-TR" : "en-GB");
+      parts.push(Lang.t(exe.download_count === 1 ? "1 download" : `${n} downloads`, `${n} indirme`));
+    }
+    line.innerHTML = Lang.t("Latest: ", "Son sürüm: ") + parts.join(" · ");
+  };
+  Lang.on(render);
+  fetch("https://api.github.com/repos/Talkdedsec/tlk-visual/releases/latest",
+        { headers: { Accept: "application/vnd.github+json" } })
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then((data) => {
+      release = data;
+      const exe = (data.assets || []).find((a) => a.name.toLowerCase().endsWith(".exe"));
+      if (exe) document.querySelectorAll("[data-download]").forEach((a) => (a.href = exe.browser_download_url));
+      render();
+    })
+    .catch(() => {});
+})();
+
+// ---------------------------------------------------------------------------
+// Playground. The transfer curve is src/color.rs; the scene is src/preview.rs.
+// Keep both in step with the Rust when either changes.
+// ---------------------------------------------------------------------------
+(() => {
+  const RANGES = {
+    brightness: [-0.35, 0.35], contrast: [0.6, 1.8], gamma: [0.5, 2.2],
+    temperature: [-1, 1], night_vision: [0, 1],
+  };
+  const NEUTRAL = { brightness: 0, contrast: 1, gamma: 1, temperature: 0, night_vision: 0 };
+  const CONTROLS = [
+    ["brightness", "Brightness", "Parlaklık", "lifts the black level", "siyah seviyesini kaldırır", true],
+    ["contrast", "Contrast", "Kontrast", "shadow–highlight separation", "gölge–ışık ayrımı", false],
+    ["gamma", "Gamma", "Gama", "weight of the midtones", "orta tonların ağırlığı", false],
+    ["temperature", "Colour temperature", "Renk sıcaklığı", "cool to warm", "soğuktan sıcağa", true],
+    ["night_vision", "Night vision", "Gece görüşü", "detail in the dark", "karanlıkta detay", false],
+  ];
+  const TRACKS = {
+    brightness: "linear-gradient(90deg,#1c1c20,#ffffff)",
+    contrast: "linear-gradient(90deg,#4a4a52,#e8e8ee)",
+    gamma: "linear-gradient(90deg,#241f30,#d946ef)",
+    temperature: "linear-gradient(90deg,#4da6ff,#e8e8ee 50%,#ffb14d)",
+    night_vision: "linear-gradient(90deg,#10231a,#56d66c)",
+  };
+  // src/presets.rs
+  const PRESETS = [
+    ["Clear", "Berrak", { brightness: 0.03, contrast: 1.16, gamma: 1.08, temperature: 0, night_vision: 0 }],
+    ["Night Vision", "Gece Görüşü", { brightness: 0.04, contrast: 1.05, gamma: 1.35, temperature: -0.1, night_vision: 0.85 }],
+    ["Warm", "Sıcak", { brightness: 0, contrast: 1, gamma: 1.05, temperature: 0.55, night_vision: 0 }],
+    ["Cool", "Soğuk", { brightness: 0.02, contrast: 1.12, gamma: 1, temperature: -0.5, night_vision: 0 }],
+    ["Night Reading", "Gece Okuma", { brightness: -0.14, contrast: 0.92, gamma: 0.88, temperature: 0.7, night_vision: 0 }],
+    ["Hard Contrast", "Sert Kontrast", { brightness: 0, contrast: 1.55, gamma: 1, temperature: 0, night_vision: 0 }],
+  ];
+
+  const clamp01 = (v) => Math.min(1, Math.max(0, v));
+  const clampTo = (v, [lo, hi]) => (Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : lo);
+  const clamped = (s) => Object.fromEntries(Object.keys(RANGES).map((k) => [k, clampTo(s[k], RANGES[k])]));
+
+  // Settings::channel
+  const channel = (raw, v, c) => {
+    const s = clamped(raw);
+    let x = clamp01(v);
+    if (s.night_vision > 0) x += s.night_vision * 0.45 * Math.pow(1 - x, 2.2);
+    x = Math.pow(clamp01(x), 1 / s.gamma);
+    x = (x - 0.5) * s.contrast + 0.5;
+    x += s.brightness;
+    const warm = s.temperature * 0.22;
+    x *= c === 0 ? 1 + warm : c === 2 ? 1 - warm : 1 - Math.abs(warm) * 0.06;
+    return clamp01(x);
+  };
+  const toByte = (v) => Math.floor(clamp01(v) * 255 + 0.5);
+
+  // --- the scene: src/preview.rs ------------------------------------------
+  const mix = (a, b, t) => { t = clamp01(t); return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; };
+  const hash = (x, y) => { const n = Math.sin(x * 127.1 + y * 311.7) * 43758.545; return n - Math.floor(n); };
+  const noise = (x, y) => {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    const sx = xf * xf * (3 - 2 * xf), sy = yf * yf * (3 - 2 * yf);
+    const n00 = hash(xi, yi), n10 = hash(xi + 1, yi), n01 = hash(xi, yi + 1), n11 = hash(xi + 1, yi + 1);
+    const top = n00 + (n10 - n00) * sx, bottom = n01 + (n11 - n01) * sx;
+    return top + (bottom - top) * sy;
+  };
+  const HORIZON = 0.46, SWATCH_TOP = 0.865;
+  const treeline = (u, v) => {
+    const crown = noise(u * 11, 1.7) * 0.6 + noise(u * 27, 4.3) * 0.4;
+    const top = HORIZON - 0.015 - 0.115 * crown, bottom = HORIZON + 0.035;
+    if (v < top || v > bottom) return 0;
+    const fade = 1 - Math.pow(clamp01((v - top) / (bottom - top)), 2.2);
+    return Math.min(fade * 0.95, 1);
+  };
+  const rocks = (u, v, floor) => {
+    const spots = [[0.31, 0.74, 0.055, 0.028], [0.47, 0.88, 0.035, 0.018], [0.82, 0.79, 0.045, 0.022]];
+    const span = Math.max(floor - HORIZON, 0.0001), vv = (v - HORIZON) / span;
+    let cover = 0;
+    for (const [cx, cy, rx, ry] of spots) {
+      const d = ((u - cx) / rx) ** 2 + ((vv - cy) / (ry / span * 0.5)) ** 2;
+      cover = Math.max(cover, Math.pow(clamp01(1 - d), 0.35));
+    }
+    return cover;
+  };
+  const sky = (u, v) => {
+    const t = v / HORIZON;
+    let rgb = mix([0.09, 0.2, 0.38], [0.55, 0.68, 0.8], Math.pow(t, 0.75));
+    const sun = 1 - Math.min(Math.sqrt((u - 0.74) ** 2 * 2.4 + (v - 0.1) ** 2 * 6) * 3.2, 1);
+    rgb = mix(rgb, [0.98, 0.95, 0.84], sun * 0.75);
+    const cloud = noise(u * 6, v * 9) * 0.6 + noise(u * 14, v * 18) * 0.4;
+    const band = Math.min((1 - t) * 1.4, 1);
+    return mix(rgb, [0.86, 0.89, 0.93], Math.min(Math.max(cloud - 0.55, 0) * 1.9 * band, 0.85));
+  };
+  const terrain = (u, v, floor) => {
+    const t = clamp01((v - HORIZON) / (floor - HORIZON));
+    let rgb = mix([0.2, 0.26, 0.14], [0.34, 0.3, 0.17], Math.pow(t, 0.8));
+    rgb = mix(rgb, [0.16, 0.22, 0.11], Math.max(noise(u * 26, v * 34) - 0.5, 0) * 0.9);
+    rgb = mix(rgb, [0.11, 0.19, 0.09], Math.min(Math.max(noise(u * 8 + 3, v * 5) - 0.62, 0) * 2.6, 0.9));
+    const path = 1 - Math.min(Math.abs(u - 0.58 - t * 0.16) * 9, 1);
+    return mix(rgb, [0.42, 0.37, 0.26], path * 0.55 * t);
+  };
+  const shadowMask = (u, v) => Math.pow((1 - Math.min(Math.abs(u - 0.14) * 3.4, 1)) * clamp01((v - HORIZON) * 2.6), 0.7);
+  const SWATCHES = [[0.02, 0.02, 0.02], [0.25, 0.25, 0.25], [0.5, 0.5, 0.5], [0.75, 0.75, 0.75], [0.98, 0.98, 0.98],
+    [0.78, 0.14, 0.14], [0.9, 0.58, 0.12], [0.88, 0.82, 0.16], [0.16, 0.62, 0.26], [0.14, 0.44, 0.82], [0.48, 0.2, 0.72], [0.86, 0.66, 0.52]];
+  const swatch = (u, v) => {
+    if (clamp01((v - SWATCH_TOP) / (1 - SWATCH_TOP)) < 0.06) return [0.04, 0.04, 0.05];
+    const slot = Math.min(Math.floor(u * 12), 11), local = u * 12 - slot;
+    return mix([0.04, 0.04, 0.05], SWATCHES[slot], Math.min(local * 22, 1) * Math.min((1 - local) * 22, 1));
+  };
+  const sample = (u, v) => {
+    if (v >= SWATCH_TOP) return swatch(u, v);
+    const floor = SWATCH_TOP;
+    let rgb = v < HORIZON ? sky(u, v) : terrain(u, v, floor);
+    rgb = mix(rgb, [0.055, 0.085, 0.045], treeline(u, v));
+    rgb = mix(rgb, [0.2, 0.19, 0.18], rocks(u, v, floor));
+    rgb = mix(rgb, [rgb[0] * 0.12, rgb[1] * 0.13, rgb[2] * 0.16], shadowMask(u, v));
+    const vignette = 1 - 0.28 * ((u - 0.5) ** 2 + (v - 0.5) ** 2);
+    return [rgb[0] * vignette, rgb[1] * vignette, rgb[2] * vignette];
+  };
+
+  const W = 1040, H = 362;
+  const after = document.getElementById("after"), before = document.getElementById("before");
+  const actx = after.getContext("2d"), bctx = before.getContext("2d");
+  let base = null, out = null, building = false;
+
+  // A few hundred milliseconds of maths, done in slices so the page keeps scrolling.
+  const buildScene = () => new Promise((done) => {
+    const pixels = new Uint8ClampedArray(W * H * 4);
+    let y = 0;
+    const slice = () => {
+      const until = performance.now() + 12;
+      for (; y < H && performance.now() < until; y++) {
+        for (let x = 0; x < W; x++) {
+          const [r, g, b] = sample(x / (W - 1), y / (H - 1));
+          const i = (y * W + x) * 4;
+          pixels[i] = toByte(r); pixels[i + 1] = toByte(g); pixels[i + 2] = toByte(b); pixels[i + 3] = 255;
+        }
+      }
+      if (y < H) { setTimeout(slice, 0); return; }
+      bctx.putImageData(new ImageData(pixels, W, H), 0, 0);
+      out = new ImageData(W, H);
+      base = pixels;
+      done();
+    };
+    slice();
+  });
+
+  // --- state, controls and drawing --------------------------------------------
+  // Open on Night Vision: a neutral start would show two identical halves.
+  let state = { ...PRESETS[1][2] };
+  // The address only changes once the visitor has changed something.
+  let touched = false;
+  const isNeutral = (s) => Object.keys(NEUTRAL).every((k) => Math.abs(s[k] - NEUTRAL[k]) < 1e-4);
+  const fmt = (v, signed) => {
+    const text = (signed && v >= 0 ? "+" : "") + v.toFixed(2);
+    return Lang.get() === "tr" ? text.replace(".", ",") : text;
+  };
+
+  const controls = document.getElementById("controls");
+  const inputs = {};
+  CONTROLS.forEach(([key, en, tr, hintEn, hintTr, signed]) => {
+    const wrap = document.createElement("div");
+    wrap.className = "ctl";
+    const id = `ctl-${key}`;
+    wrap.innerHTML = `<label for="${id}"><span><span class="name"></span><small></small></span><output for="${id}"></output></label>
+      <input class="slider" type="range" id="${id}" min="${RANGES[key][0]}" max="${RANGES[key][1]}" step="0.01" value="${NEUTRAL[key]}">`;
+    const input = wrap.querySelector("input");
+    input.style.setProperty("--track", TRACKS[key]);
+    input.addEventListener("input", () => { touched = true; state[key] = Number(input.value); update(); });
+    input.addEventListener("dblclick", () => { touched = true; state[key] = NEUTRAL[key]; update(); });
+    inputs[key] = { input, output: wrap.querySelector("output"), name: wrap.querySelector(".name"),
+                    hint: wrap.querySelector("small"), en, tr, hintEn, hintTr, signed };
+    controls.appendChild(wrap);
+  });
+
+  const presetBox = document.getElementById("presets");
+  const chips = PRESETS.map(([en, tr, settings]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip";
+    b.addEventListener("click", () => { touched = true; state = { ...settings }; update(); });
+    presetBox.appendChild(b);
+    return { b, en, tr, settings };
+  });
+
+  const curvePath = (c) => {
+    let d = "";
+    for (let step = 0; step <= 64; step++) {
+      const level = Math.min(step * 4, 255);
+      d += `${step ? "L" : "M"}${level} ${(255 - channel(state, level / 255, c) * 255).toFixed(1)} `;
+    }
+    return d.trim();
+  };
+
+  let pending = false;
+  const draw = () => {
+    pending = false;
+    if (!base) return;
+    const lut = [0, 1, 2].map((c) => { const t = new Uint8ClampedArray(256); for (let i = 0; i < 256; i++) t[i] = toByte(channel(state, i / 255, c)); return t; });
+    const d = out.data;
+    for (let i = 0; i < d.length; i += 4) {
+      d[i] = lut[0][base[i]]; d[i + 1] = lut[1][base[i + 1]]; d[i + 2] = lut[2][base[i + 2]]; d[i + 3] = 255;
+    }
+    actx.putImageData(out, 0, 0);
+  };
+
+  const update = () => {
+    state = clamped(state);
+    for (const [key, c] of Object.entries(inputs)) {
+      c.input.value = state[key];
+      c.output.textContent = fmt(state[key], c.signed);
+      c.output.classList.toggle("on", Math.abs(state[key] - NEUTRAL[key]) > 1e-4);
+    }
+    chips.forEach((c) => c.b.setAttribute("aria-pressed",
+      String(Object.keys(NEUTRAL).every((k) => Math.abs(c.settings[k] - state[k]) < 1e-4))));
+    const mono = Math.abs(state.temperature) < 1e-4;
+    document.getElementById("c-m").setAttribute("d", mono ? curvePath(0) : "");
+    ["r", "g", "b"].forEach((id, c) => document.getElementById(`c-${id}`).setAttribute("d", mono ? "" : curvePath(c)));
+    if (!pending) { pending = true; requestAnimationFrame(draw); }
+    writeHash();
+  };
+
+  const relabel = () => {
+    const lang = Lang.get();
+    Object.values(inputs).forEach((c) => {
+      c.name.textContent = lang === "tr" ? c.tr : c.en;
+      c.hint.textContent = lang === "tr" ? c.hintTr : c.hintEn;
+    });
+    chips.forEach((c) => (c.b.textContent = lang === "tr" ? c.tr : c.en));
+    document.getElementById("split").setAttribute("aria-label", Lang.t("Before / after split", "Önce / sonra bölmesi"));
+    presetBox.setAttribute("aria-label", Lang.t("Presets", "Presetler"));
+    document.getElementById("curve").setAttribute("aria-label", Lang.t("Transfer curve", "Transfer eğrisi"));
+    update();
+  };
+  Lang.on(relabel);
+
+  // --- before / after ------------------------------------------------------------
+  const stage = document.getElementById("stage");
+  const split = document.getElementById("split");
+  split.addEventListener("input", () => stage.style.setProperty("--split", `${split.value}%`));
+  const hold = document.getElementById("hold");
+  const showOriginal = (on) => { after.style.visibility = on ? "hidden" : "visible"; before.style.clipPath = on ? "none" : ""; };
+  hold.addEventListener("pointerdown", () => showOriginal(true));
+  ["pointerup", "pointerleave", "pointercancel"].forEach((e) => hold.addEventListener(e, () => showOriginal(false)));
+  hold.addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); showOriginal(true); } });
+  hold.addEventListener("keyup", () => showOriginal(false));
+
+  // --- sharing, export, reset --------------------------------------------------------
+  const KEYS = Object.keys(NEUTRAL);
+  function writeHash() {
+    if (!touched) return;
+    const value = isNeutral(state) ? "" : "#try=" + KEYS.map((k) => state[k].toFixed(2)).join(",");
+    if (value) history.replaceState(null, "", value);
+    else if (location.hash.startsWith("#try=")) history.replaceState(null, "", location.pathname + location.search);
+  }
+  const readHash = () => {
+    const m = location.hash.match(/^#try=([-\d.,]+)$/);
+    if (!m) return false;
+    const values = m[1].split(",").map(Number);
+    if (values.length !== KEYS.length || values.some((v) => !Number.isFinite(v))) return false;
+    KEYS.forEach((k, i) => (state[k] = values[i]));
+    touched = true;
+    return true;
+  };
+
+  const flash = (button, en, tr) => {
+    const label = button.innerHTML;
+    button.textContent = Lang.t(en, tr);
+    setTimeout(() => (button.innerHTML = button.dataset[Lang.get()] || label), 1600);
+  };
+
+  document.getElementById("share").addEventListener("click", async (e) => {
+    touched = true;
+    writeHash();
+    try { await navigator.clipboard.writeText(location.href); flash(e.currentTarget, "Link copied", "Bağlantı kopyalandı"); } catch {}
+  });
+
+  // The app's own export format (src/profiles.rs): a list of { name, settings }.
+  document.getElementById("export").addEventListener("click", () => {
+    const name = Lang.t("From the website", "Web sitesinden");
+    const settings = Object.fromEntries(KEYS.map((k) => [k, Math.round(state[k] * 100) / 100]));
+    const blob = new Blob([JSON.stringify([{ name, settings }], null, 2) + "\n"], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "talkdedsec-visual-profile.json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  document.getElementById("reset").addEventListener("click", () => { touched = true; state = { ...NEUTRAL }; update(); });
+
+  // The scene costs a few hundred milliseconds; build it when the section comes near.
+  const start = () => {
+    if (building) return;
+    building = true;
+    buildScene().then(draw);
+  };
+  if (readHash()) setTimeout(() => document.getElementById("try").scrollIntoView(), 0);
+  // A shared link opened while the page is already here changes only the hash.
+  window.addEventListener("hashchange", () => { if (readHash()) update(); });
+  if ("IntersectionObserver" in window) {
+    const near = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { near.disconnect(); start(); }
+    }, { rootMargin: "400px 0px" });
+    near.observe(stage);
+  } else {
+    start();
+  }
+})();
+
+Lang.start();
 </script>
 </body>
 </html>
