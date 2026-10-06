@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-10-06
+
 ### Added
 
 - English interface. The panel, tray menu, file dialogs and status messages are written in
@@ -93,5 +95,6 @@ First public release.
 - Exclusive fullscreen hands the display pipeline to the game; borderless windowed is the
   reliable mode.
 
-[Unreleased]: https://github.com/Talkdedsec/tlk-visual/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Talkdedsec/tlk-visual/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Talkdedsec/tlk-visual/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Talkdedsec/tlk-visual/releases/tag/v0.1.0
