@@ -163,10 +163,10 @@ Release iş akışı ikiliyi temiz bir GitHub makinesinde derliyor ve yanına
 `talkdedsec-visual.exe.sha256` dosyasını koyuyor; aşağıdaki özet etiketten yeniden
 üretebileceğin özet.
 
-`talkdedsec-visual.exe` için SHA-256, `v0.1.0` sürümü:
+`talkdedsec-visual.exe` için SHA-256, `v0.2.0` sürümü:
 
 ```text
-8bf76c680ad79587a3536cdaff5dd19763a8a595eb6cac15c6e5bbe4ee074c25
+3c8d157281093a52c03caee9cfcfa36a466057d6280392ea305f8b8ef8841c7f
 ```
 
 ```powershell

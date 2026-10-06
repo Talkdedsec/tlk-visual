@@ -168,10 +168,10 @@ The release workflow builds the binary on a clean GitHub runner and attaches
 `talkdedsec-visual.exe.sha256` next to it, so the digest below is the one you can reproduce
 from the tag.
 
-SHA-256 for `talkdedsec-visual.exe`, release `v0.1.0`:
+SHA-256 for `talkdedsec-visual.exe`, release `v0.2.0`:
 
 ```text
-8bf76c680ad79587a3536cdaff5dd19763a8a595eb6cac15c6e5bbe4ee074c25
+3c8d157281093a52c03caee9cfcfa36a466057d6280392ea305f8b8ef8841c7f
 ```
 
 ```powershell
