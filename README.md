@@ -308,3 +308,7 @@ you play and decide for yourself.
 [GPL-3.0-or-later](LICENSE) — © 2026 Talkdedsec
 
 Take it, change it, ship it. Derivative work has to stay open too.
+
+<p align="center">
+  <sub>Built by <a href="https://talkdedsec.com">Talkdedsec</a></sub>
+</p>

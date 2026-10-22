@@ -302,3 +302,7 @@ ve bu teknik bir soru değil, onların kararı. Oynadığın oyunun kuralların�
 [GPL-3.0-or-later](LICENSE) — © 2026 Talkdedsec
 
 Al, değiştir, dağıt. Türev iş de açık kalmak zorunda.
+
+<p align="center">
+  <sub><a href="https://talkdedsec.com">Talkdedsec</a> tarafından yapıldı</sub>
+</p>
